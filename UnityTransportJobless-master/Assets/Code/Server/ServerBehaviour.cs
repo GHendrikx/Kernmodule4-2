@@ -16,9 +16,16 @@ public class ServerBehaviour : MonoBehaviour
 
     private JobHandle networkJobHandle;
 
-    private Queue<MessageHeader> messagesQueue;
-
     public MessageEvent[] ServerCallbacks = new MessageEvent[(int)MessageHeader.MessageType.Count - 1];
+  
+    private Queue<MessageHeader> serverMessagesQueue;
+    public Queue<MessageHeader> ServerMessageQueue
+    {
+        get
+        {
+            return serverMessagesQueue;
+        }
+    }
 
     void Start()
     {
@@ -26,23 +33,19 @@ public class ServerBehaviour : MonoBehaviour
         var endpoint = NetworkEndPoint.AnyIpv4;
         endpoint.Port = 9000;
         if(networkDriver.Bind(endpoint) != 0)
-        {
             Debug.Log("Failed to bind port");
-        }
         else
-        {
             networkDriver.Listen();
-        }
 
         connections = new NativeList<NetworkConnection>(16, Allocator.Persistent);
 
-        messagesQueue = new Queue<MessageHeader>();
+        serverMessagesQueue = new Queue<MessageHeader>();
 
         for (int i = 0; i < ServerCallbacks.Length; i++)
-        {
             ServerCallbacks[i] = new MessageEvent();
-        }
+
         ServerCallbacks[(int)MessageHeader.MessageType.SetName].AddListener(HandleSetName);
+
     }
 
     private void HandleSetName(MessageHeader message)
@@ -53,33 +56,29 @@ public class ServerBehaviour : MonoBehaviour
     void Update()
     {
         networkJobHandle.Complete();
-
-        for(int i = 0; i < connections.Length; ++i)
-        {
-            if(!connections[i].IsCreated)
-            {
-                connections.RemoveAtSwapBack(i);
-                --i;
-            }
-        }
+            for (int i = 0; i < connections.Length; ++i)
+                if (!connections[i].IsCreated)
+                {
+                    connections.RemoveAtSwapBack(i);
+                    --i;
+                }
 
         NetworkConnection c;
-        while((c = networkDriver.Accept()) != default)
-        {
-            connections.Add(c);
-            Debug.Log("Accepted connection");
-
-            var colour = (Color32)Color.magenta;
-            var message = new WelcomeMessage
+        if(connections.Length < 5)
+            while((c = networkDriver.Accept()) != default)
             {
-                PlayerID = c.InternalId,
-                Colour = ((uint)colour.r << 24) | ((uint)colour.g << 16) | ((uint)colour.b << 8) | colour.a
-            };
+                //Accepted Connection
+                connections.Add(c);
+                var colour = (Color32)Random.ColorHSV();
+                var welcomeMessage = new WelcomeMessage
+                {
+                    PlayerID = c.InternalId,
+                    Colour = ((uint)colour.r << 24) | ((uint)colour.g << 16) | ((uint)colour.b << 8) | colour.a
+                };
 
-            var writer = networkDriver.BeginSend(c);
-            message.SerializeObject(ref writer);
-            networkDriver.EndSend(writer);
-        }
+                PlayerManager.Instance.players.Add(new Players(welcomeMessage.PlayerID, "", welcomeMessage.Colour));
+                NetworkManager.SendMessage(networkDriver, welcomeMessage, c);
+            }
 
         DataStreamReader reader;
         for(int i = 0; i < connections.Length; ++i)
@@ -95,15 +94,16 @@ public class ServerBehaviour : MonoBehaviour
                     switch (messageType)
                     {
                         case MessageHeader.MessageType.None:
+                            var noneMessage = NetworkManager.ReadMessage<StayAliveMessage>(reader, ServerMessageQueue);
+                            NetworkManager.SendMessage(networkDriver, noneMessage, connections[i]);
                             break;
                         case MessageHeader.MessageType.NewPlayer:
                             break;
                         case MessageHeader.MessageType.Welcome:
                             break;
                         case MessageHeader.MessageType.SetName:
-                            var message = new SetNameMessage();
-                            message.DeserializeObject(ref reader);
-                            messagesQueue.Enqueue(message);
+                            SetNameMessage setNameMessage = NetworkManager.ReadMessage<SetNameMessage>(reader, ServerMessageQueue) as SetNameMessage;
+                            PlayerManager.Instance.players[i].clientName = setNameMessage.Name;
                             break;
                         case MessageHeader.MessageType.RequestDenied:
                             break;
@@ -132,9 +132,9 @@ public class ServerBehaviour : MonoBehaviour
 
     private void ProcessMessagesQueue()
     {
-        while(messagesQueue.Count > 0)
+        while(serverMessagesQueue.Count > 0)
         {
-            var message = messagesQueue.Dequeue();
+            var message = serverMessagesQueue.Dequeue();
             ServerCallbacks[(int)message.Type].Invoke(message);
         }
     }

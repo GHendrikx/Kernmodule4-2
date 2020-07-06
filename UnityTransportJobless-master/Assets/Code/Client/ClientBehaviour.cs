@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using System.Collections;
 using Unity.Networking.Transport;
-using System.IO;
 using Assets.Code;
 using Unity.Jobs;
+using UnityEngine.Timers;
+using System.Collections.Generic;
 
 public class ClientBehaviour : MonoBehaviour
 {
@@ -12,15 +12,35 @@ public class ClientBehaviour : MonoBehaviour
 
     private JobHandle networkJobHandle;
 
+    private Queue<MessageHeader> ClientMessagesQueue;
+    public MessageEvent[] ClientCallbacks = new MessageEvent[(int)MessageHeader.MessageType.Count - 1];
+    
+    // player name
+    public string playerName;
+
     // Use this for initialization
     void Start()
     {
         networkDriver = NetworkDriver.Create();
         connection = default;
 
+        ClientMessagesQueue = new Queue<MessageHeader>();
+
+        for (int i = 0; i < ClientCallbacks.Length; i++)
+        {
+            ClientCallbacks[i] = new MessageEvent();
+        }
+
         var endpoint = NetworkEndPoint.LoopbackIpv4;
         endpoint.Port = 9000;
         connection = networkDriver.Connect(endpoint);
+        TimerManager.Instance.AddTimer(StayAlive, 10);
+    }
+
+    private void StayAlive()
+    {
+        networkJobHandle.Complete();
+        NetworkManager.SendMessage(networkDriver, new StayAliveMessage(), connection);
     }
 
     // Update is called once per frame
@@ -29,9 +49,7 @@ public class ClientBehaviour : MonoBehaviour
         networkJobHandle.Complete();
 
         if(!connection.IsCreated)
-        {
             return;
-        }
 
         DataStreamReader reader;
         NetworkEvent.Type cmd;
@@ -47,6 +65,8 @@ public class ClientBehaviour : MonoBehaviour
                 switch (messageType)
                 {
                     case MessageHeader.MessageType.None:
+                        var stayAliveMessage = NetworkManager.ReadMessage<StayAliveMessage>(reader, ClientMessagesQueue) as StayAliveMessage;
+                        TimerManager.Instance.AddTimer(StayAlive, 10);
                         break;
                     case MessageHeader.MessageType.NewPlayer:
                         break;
@@ -54,15 +74,13 @@ public class ClientBehaviour : MonoBehaviour
                         var welcomeMessage = new WelcomeMessage();
                         welcomeMessage.DeserializeObject(ref reader);
 
-                        Debug.Log("Got a welcome message");
-
                         var setNameMessage = new SetNameMessage
                         {
-                            Name = "Vincent"
+                            Name = playerName
                         };
-                        var writer = networkDriver.BeginSend(connection);
-                        setNameMessage.SerializeObject(ref writer);
-                        networkDriver.EndSend(writer);
+
+                        PlayerManager.Instance.CurrentPlayer = new Players(welcomeMessage.PlayerID, playerName, welcomeMessage.Colour);
+                        NetworkManager.SendMessage(networkDriver, setNameMessage, connection);
                         break;
                     case MessageHeader.MessageType.SetName:
                         break;
