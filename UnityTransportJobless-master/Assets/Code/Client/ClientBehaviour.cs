@@ -31,6 +31,8 @@ public class ClientBehaviour : MonoBehaviour
             ClientCallbacks[i] = new MessageEvent();
         }
 
+        ClientCallbacks[(int)MessageHeader.MessageType.NewPlayer].AddListener(PlayerManager.Instance.NewPlayer);
+
         var endpoint = NetworkEndPoint.LoopbackIpv4;
         endpoint.Port = 9000;
         connection = networkDriver.Connect(endpoint);
@@ -69,10 +71,10 @@ public class ClientBehaviour : MonoBehaviour
                         TimerManager.Instance.AddTimer(StayAlive, 10);
                         break;
                     case MessageHeader.MessageType.NewPlayer:
+                        NewPlayerMessage newPlayerMessage = (NewPlayerMessage)NetworkManager.ReadMessage<NewPlayerMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.Welcome:
-                        var welcomeMessage = new WelcomeMessage();
-                        welcomeMessage.DeserializeObject(ref reader);
+                        var welcomeMessage = (WelcomeMessage)NetworkManager.ReadMessage<WelcomeMessage>(reader,ClientMessagesQueue) as WelcomeMessage;
 
                         var setNameMessage = new SetNameMessage
                         {
@@ -80,6 +82,7 @@ public class ClientBehaviour : MonoBehaviour
                         };
 
                         PlayerManager.Instance.CurrentPlayer = new Players(welcomeMessage.PlayerID, playerName, welcomeMessage.Colour);
+                        UIManager.Instance.SpawnPlayerLabel(PlayerManager.Instance.CurrentPlayer);
                         NetworkManager.SendMessage(networkDriver, setNameMessage, connection);
                         break;
                     case MessageHeader.MessageType.SetName:
@@ -104,7 +107,19 @@ public class ClientBehaviour : MonoBehaviour
         }
 
         networkJobHandle = networkDriver.ScheduleUpdate();
+
+        ProcessMessagesQueue();
     }
+
+    private void ProcessMessagesQueue()
+    {
+        while (ClientMessagesQueue.Count > 0)
+        {
+            var message = ClientMessagesQueue.Dequeue();
+            ClientCallbacks[(int)message.Type].Invoke(message);
+        }
+    }
+
 
     private void OnDestroy()
     {

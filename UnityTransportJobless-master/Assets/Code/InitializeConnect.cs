@@ -21,7 +21,6 @@ public class InitializeConnect : MonoBehaviour
         GameObject go = new GameObject();
         ClientBehaviour c = go.AddComponent<ClientBehaviour>();
         c.playerName = name;
-        GameManager.Instance.panelSwitch.SwitchToGamePanel(GamePanel.Lobby);
     }
 
     /// <summary>
@@ -35,8 +34,7 @@ public class InitializeConnect : MonoBehaviour
         
         GameObject go = new GameObject();
         go.AddComponent<ServerBehaviour>();
-        ClientBehaviour c = go.AddComponent<ClientBehaviour>();
-        c.playerName = name;
-        GameManager.Instance.panelSwitch.SwitchToGamePanel(GamePanel.Lobby);
+        ClientBehaviour connect = go.AddComponent<ClientBehaviour>();
+        connect.playerName = name;
     }
 }

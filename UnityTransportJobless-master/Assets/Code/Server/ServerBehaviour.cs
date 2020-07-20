@@ -76,7 +76,7 @@ public class ServerBehaviour : MonoBehaviour
                     Colour = ((uint)colour.r << 24) | ((uint)colour.g << 16) | ((uint)colour.b << 8) | colour.a
                 };
 
-                PlayerManager.Instance.players.Add(new Players(welcomeMessage.PlayerID, "", welcomeMessage.Colour));
+                PlayerManager.Instance.Players.Add(new Players(welcomeMessage.PlayerID, "", welcomeMessage.Colour));
                 NetworkManager.SendMessage(networkDriver, welcomeMessage, c);
             }
 
@@ -103,7 +103,30 @@ public class ServerBehaviour : MonoBehaviour
                             break;
                         case MessageHeader.MessageType.SetName:
                             SetNameMessage setNameMessage = NetworkManager.ReadMessage<SetNameMessage>(reader, ServerMessageQueue) as SetNameMessage;
-                            PlayerManager.Instance.players[i].clientName = setNameMessage.Name;
+                            PlayerManager.Instance.Players[i].clientName = setNameMessage.Name;
+
+
+                            var newPlayerMessage = new NewPlayerMessage()
+                            {
+                                PlayerID = PlayerManager.Instance.Players[i].playerID,
+                                PlayerColor = PlayerManager.Instance.Players[i].clientColor,
+                                PlayerName = setNameMessage.Name
+                            };
+
+                            //looping through all the connections to send the new player message
+                            for (int j = 0; j < connections.Length; j++)
+                                if (connections[j].InternalId != newPlayerMessage.PlayerID)
+                                {
+                                    NetworkManager.SendMessage(networkDriver, newPlayerMessage, connections[j]);
+                                    var currentPlayerMessage = new NewPlayerMessage()
+                                    {
+                                        PlayerID = PlayerManager.Instance.Players[j].playerID,
+                                        PlayerColor = PlayerManager.Instance.Players[j].clientColor,
+                                        PlayerName = PlayerManager.Instance.Players[j].clientName
+                                    };
+                                    NetworkManager.SendMessage(networkDriver, currentPlayerMessage, connections[i]);
+                                }
+
                             break;
                         case MessageHeader.MessageType.RequestDenied:
                             break;
@@ -137,6 +160,13 @@ public class ServerBehaviour : MonoBehaviour
             var message = serverMessagesQueue.Dequeue();
             ServerCallbacks[(int)message.Type].Invoke(message);
         }
+    }
+
+    public void StartGame()
+    {
+        StartGameMessage message = new StartGameMessage();
+        for (int i = 0; i < connections.Length; i++)
+            NetworkManager.SendMessage(networkDriver, message, connections[i]);
     }
 
     private void OnDestroy()
