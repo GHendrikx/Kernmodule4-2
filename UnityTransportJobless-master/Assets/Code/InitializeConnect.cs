@@ -33,7 +33,11 @@ public class InitializeConnect : MonoBehaviour
             name = "Unknown #" + UnityEngine.Random.Range(0, float.MaxValue);
         
         GameObject go = new GameObject();
-        go.AddComponent<ServerBehaviour>();
+        //adding serverbehaviour and set the playbutton onclick
+        ServerBehaviour serverBehaviour = go.AddComponent<ServerBehaviour>();
+        UIManager.Instance.PlayButton.onClick.AddListener(serverBehaviour.StartGame);
+
+        //clientbehaviour
         ClientBehaviour connect = go.AddComponent<ClientBehaviour>();
         connect.playerName = name;
     }

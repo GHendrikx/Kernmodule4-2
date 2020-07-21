@@ -12,36 +12,43 @@ public class UIManager : Singleton<UIManager>
     private GameObject Content;
     [SerializeField]
     private Button playButton;
+    public Button PlayButton
+    {
+        get
+        {
+            return playButton;
+        }
+        set
+        {
+            playButton = value;
+        }
+    }
     [SerializeField]
     private GameObject lobbyPanel;
     [SerializeField]
     private GameObject gamePanel;
-    private ServerBehaviour serverBehaviour
+    public GameObject GamePanel
     {
         get
         {
-            if (serverBehaviour == null)
-                FindObjectOfType<ServerBehaviour>();
-            return serverBehaviour;
+            return gamePanel;
         }
         set
         {
-            serverBehaviour = value;
+            gamePanel = value;
         }
     }
-
-    private void Start()
-    {
-        playButton.onClick.AddListener(serverBehaviour.StartGame);
-    }
+    
 
     private void Update()
     {
-        if(Content.transform.childCount > 1)
-            playButton.interactable = true;
-        else
-            playButton.interactable = false;
-
+        if (playButton.gameObject.activeInHierarchy)
+        {
+            if (Content.transform.childCount > 0)
+                playButton.interactable = true;
+            else
+                playButton.interactable = false;
+        }
 
     }
 
@@ -64,7 +71,7 @@ public class UIManager : Singleton<UIManager>
         
     }
     
-    public void SwitchToGamePanel()
+    public void SwitchToGamePanel(MessageHeader packet)
     {
         lobbyPanel.SetActive(false);
         gamePanel.SetActive(true);
