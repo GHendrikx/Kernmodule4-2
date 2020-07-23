@@ -23,9 +23,10 @@ public class PlayerManager : Singleton<PlayerManager>
     public void NewPlayer(MessageHeader packet)
     {
         var message = (NewPlayerMessage)packet;
-        Debug.Log("Y");
+        Debug.Log(message.PlayerID);
         Players player = new Players(message.PlayerID, message.PlayerName, message.PlayerColor);
         Players.Add(player);
+        SpawnSprite(player);
         UIManager.Instance.SpawnPlayerLabel(player);
     }
 
@@ -35,8 +36,10 @@ public class PlayerManager : Singleton<PlayerManager>
         playerCount++;
         GameObject go = GameObject.Instantiate(spritePrefab);
         go.transform.parent = UIManager.Instance.GamePanel.transform;
+        go.transform.position = spawnPositions[CurrentPlayer.playerID].transform.position;
 
         for (int i = 0; i < go.transform.childCount; i++)
+        {
             if (go.transform.GetChild(i).name == "Arrow")
             {
                 Debug.Log(message.PlayerColor);
@@ -46,19 +49,61 @@ public class PlayerManager : Singleton<PlayerManager>
                 Image image = go.transform.GetChild(i).GetComponent<Image>();
                 image.color = new Color().FromUInt(message.PlayerColor);
             }
+
+            if (go.transform.GetChild(i).name.Contains("Shield"))
+            {
+                CurrentPlayer.Shield = go.transform.GetChild(i).gameObject;
+                CurrentPlayer.Shield.SetActive(false);
+            }
+        }
+    }
+
+    public void MovePlayer(MessageHeader message)
+    {
+        MoveRequest moveRequest = message as MoveRequest;
+        switch (moveRequest.direction)
+        {
+            case Direction.North:
+                CurrentPlayer.TilePosition.y += 1;
+                break;
+            case Direction.East:
+                CurrentPlayer.TilePosition.x += 1;
+                break;
+            case Direction.South:
+                CurrentPlayer.TilePosition.y -= 1;
+                break;
+            case Direction.West:
+                CurrentPlayer.TilePosition.x -= 1;
+                break;
+            default:
+                break;
+        }
     }
 
     public void SpawnSprite(Players player)
     {
-        playerCount++;
+
         GameObject go = GameObject.Instantiate(spritePrefab);
         go.transform.parent = UIManager.Instance.GamePanel.transform;
-        go.transform.position = spawnPositions[playerCount].transform.position;
+
+        go.transform.position = spawnPositions[player.playerID].transform.position;
         for (int i = 0; i < go.transform.childCount; i++)
+        {
             if (go.transform.GetChild(i).name == "Arrow")
             {
                 Color playerColor = new Color().FromUInt(player.clientColor);
                 go.transform.GetChild(i).GetComponent<Image>().color = playerColor;
             }
+            if(go.transform.GetChild(i).name.Contains("Shield"))
+            {
+                player.Shield = go.transform.GetChild(i).gameObject;
+                player.Shield.SetActive(false);
+            }
+        }
+    }
+
+    public void ToggleShield()
+    {
+
     }
 }

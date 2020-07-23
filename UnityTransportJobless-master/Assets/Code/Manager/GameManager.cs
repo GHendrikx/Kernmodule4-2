@@ -7,12 +7,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : Singleton<GameManager>
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
+    public Grid currentGrid;
+    
     // Update is called once per frame
     void Update()
     {
@@ -21,8 +17,51 @@ public class GameManager : Singleton<GameManager>
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    public void StartGame(MessageHeader arg0)
+
+    /// <summary>
+    /// Packing info message for the player in this room.
+    /// </summary>
+    /// <param name="i"></param>
+    /// <returns></returns>
+    public RoomInfoMessage MakeRoomInfoMessage(int i)
     {
         
+        byte neighbors = currentGrid.CheckNeighbors();
+
+        TileContent tileContent = currentGrid.TileContain(PlayerManager.Instance.Players[i].TilePosition);
+
+        ushort treasure = 0;
+        byte monster = 0;
+        byte exit = 0;
+
+        if (tileContent == TileContent.Treasure || tileContent == TileContent.Both)
+            treasure = 1;
+        if (tileContent == TileContent.Monster || tileContent == TileContent.Both)
+            monster = 1;
+        if (tileContent == TileContent.Exit)
+            exit = 1;
+
+        List<int> playersID = new List<int>();
+
+        for (int j = 0; j < PlayerManager.Instance.Players.Count; j++)
+            if (PlayerManager.Instance.Players[j].TilePosition == PlayerManager.Instance.Players[i].TilePosition)
+            {
+                if (PlayerManager.Instance.Players[j].playerID == PlayerManager.Instance.Players[i].playerID)
+                    continue;
+                else
+                    playersID.Add(PlayerManager.Instance.Players[j].playerID);
+            }
+
+        var roomInfo = new RoomInfoMessage()
+        {
+            directions = neighbors,
+            TreasureInRoom = treasure,
+            ContainsMonster = monster,
+            ContainsExit = exit,
+            NumberOfOtherPlayers = (byte)playersID.Count,
+            OtherPlayerIDs = playersID
+        };
+
+        return roomInfo;
     }
 }
