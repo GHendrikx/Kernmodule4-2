@@ -13,7 +13,7 @@ public class PlayerManager : Singleton<PlayerManager>
     public Players CurrentPlayer;
     [SerializeField]
     private GameObject spritePrefab;
-    public int PlayerIDWithTurn;
+    public int PlayerIDWithTurn = 0;
     [SerializeField]
     private GameObject[] spawnPositions;
 
@@ -23,7 +23,6 @@ public class PlayerManager : Singleton<PlayerManager>
     public void NewPlayer(MessageHeader packet)
     {
         var message = (NewPlayerMessage)packet;
-        Debug.Log(message.PlayerID);
         Players player = new Players(message.PlayerID, message.PlayerName, message.PlayerColor);
         Players.Add(player);
         SpawnSprite(player);

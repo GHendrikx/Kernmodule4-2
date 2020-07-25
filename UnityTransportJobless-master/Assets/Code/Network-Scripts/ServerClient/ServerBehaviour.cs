@@ -163,11 +163,25 @@ public class ServerBehaviour : MonoBehaviour
                             var moveRequest = NetworkManager.ReadMessage<MoveRequest>(reader, ServerMessageQueue);
                             PlayerManager.Instance.MovePlayer(moveRequest,i);
                             SendNewRoomInfo();
+
+                            PlayerManager.Instance.PlayerIDWithTurn++;
+                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
+                                PlayerManager.Instance.PlayerIDWithTurn = 0;
+
+                            turnMessage = new PlayerTurnMessage()
+                            {
+                                playerID = PlayerManager.Instance.PlayerIDWithTurn
+                            };
+
+                            for(int j = 0; j < connections.Length; j++)
+                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
+
                             break;
                         case MessageHeader.MessageType.AttackRequest:
 
                             UIManager.Instance.AttackMonster(i);
                             SendNewRoomInfo();
+
                             PlayerManager.Instance.PlayerIDWithTurn++;
                             if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
                                 PlayerManager.Instance.PlayerIDWithTurn = 0;
@@ -176,10 +190,15 @@ public class ServerBehaviour : MonoBehaviour
                             {
                                 playerID = PlayerManager.Instance.PlayerIDWithTurn
                             };
+
+                            for (int j = 0; j < connections.Length; j++)
+                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
+
                             break;
                         case MessageHeader.MessageType.DefendRequest:
                             NetworkManager.ReadMessage<DefendRequestMessage>(reader, serverMessagesQueue);
                             SendNewRoomInfo();
+
                             PlayerManager.Instance.PlayerIDWithTurn++;
                             if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
                                 PlayerManager.Instance.PlayerIDWithTurn = 0;
@@ -189,11 +208,14 @@ public class ServerBehaviour : MonoBehaviour
                                 playerID = PlayerManager.Instance.PlayerIDWithTurn
                             };
 
+                            for (int j = 0; j < connections.Length; j++)
+                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
                             break;
                         case MessageHeader.MessageType.ClaimTreasureRequest:
                             NetworkManager.ReadMessage<ObtainTreasureMessage>(reader, serverMessagesQueue);
                             PlayerManager.Instance.ClaimTreasure(i);
                             SendNewRoomInfo();
+
                             PlayerManager.Instance.PlayerIDWithTurn++;
                             if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
                                 PlayerManager.Instance.PlayerIDWithTurn = 0;
@@ -202,6 +224,8 @@ public class ServerBehaviour : MonoBehaviour
                             {
                                 playerID = PlayerManager.Instance.PlayerIDWithTurn
                             };
+                            for (int j = 0; j < connections.Length; j++)
+                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
                             break;
 
                         case MessageHeader.MessageType.LeaveDungeonRequest:

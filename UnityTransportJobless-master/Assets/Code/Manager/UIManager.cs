@@ -40,6 +40,17 @@ public class UIManager : Singleton<UIManager>
     }
     [SerializeField]
     private SideMenu sideMenu;
+    public SideMenu SideMenu
+    {
+        get
+        {
+            return sideMenu;
+        }
+        set
+        {
+            sideMenu = value;
+        }
+    }
 
     public GameObject[] doors;
     public GameObject monsterSprite;
@@ -117,6 +128,7 @@ public class UIManager : Singleton<UIManager>
     public void CheckTurn(MessageHeader playerTurnMessage)
     {
         PlayerTurnMessage turnMessage = playerTurnMessage as PlayerTurnMessage;
+        PlayerManager.Instance.PlayerIDWithTurn = turnMessage.playerID;
 
         //Means its the players Turn 
         if(turnMessage.playerID == PlayerManager.Instance.CurrentPlayer.playerID)

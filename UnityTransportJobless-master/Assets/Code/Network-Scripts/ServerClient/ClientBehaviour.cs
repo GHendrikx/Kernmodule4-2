@@ -14,7 +14,7 @@ public class ClientBehaviour : MonoBehaviour
 
     private Queue<MessageHeader> ClientMessagesQueue;
     public MessageEvent[] ClientCallbacks = new MessageEvent[(int)MessageHeader.MessageType.Count];
-    
+
     // player name
     public string playerName;
 
@@ -145,6 +145,12 @@ public class ClientBehaviour : MonoBehaviour
             ClientCallbacks[(int)message.Type].Invoke(message);
         }
     }
+
+    public void DisconnectPlayer()
+    {
+        connection.Disconnect(networkDriver);
+    }
+
     /// <summary>
     /// Send Requests
     /// </summary>
@@ -153,6 +159,7 @@ public class ClientBehaviour : MonoBehaviour
     {
         networkJobHandle.Complete();
         NetworkManager.SendMessage(networkDriver, MessageRequest, connection);
+        UIManager.Instance.SideMenu.SlideMenu();
     }
 
     private void OnDestroy()

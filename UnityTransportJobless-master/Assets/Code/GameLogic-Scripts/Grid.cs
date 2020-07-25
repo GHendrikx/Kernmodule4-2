@@ -4,8 +4,8 @@ using UnityEngine;
 public class Grid : MonoBehaviour
 {
     Vector2 gridSize = new Vector2(10, 10);
-    public List<Tile> tiles = new List<Tile>();
     public Tile[,] tilesArray;
+
     public void GenerateGrid()
     {
         Debug.Log("Generating");
@@ -32,8 +32,6 @@ public class Grid : MonoBehaviour
         Vector2 currentPosition = currentPlayer.TilePosition;
         int x = (int)currentPosition.x;
         int y = (int)currentPosition.y;
-
-        Debug.Log(currentPosition);
 
         Tile southTile = null;
         Tile northTile = null;
