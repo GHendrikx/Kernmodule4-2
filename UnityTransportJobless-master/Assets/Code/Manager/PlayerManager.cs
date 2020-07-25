@@ -13,7 +13,7 @@ public class PlayerManager : Singleton<PlayerManager>
     public Players CurrentPlayer;
     [SerializeField]
     private GameObject spritePrefab;
-    private static int playerCount;
+    public int PlayerIDWithTurn;
     [SerializeField]
     private GameObject[] spawnPositions;
 
@@ -33,7 +33,6 @@ public class PlayerManager : Singleton<PlayerManager>
     public void SpawnSprite(MessageHeader Info)
     {
         NewPlayerMessage message = Info as NewPlayerMessage;
-        playerCount++;
         GameObject go = GameObject.Instantiate(spritePrefab);
         go.transform.parent = UIManager.Instance.GamePanel.transform;
         go.transform.position = spawnPositions[CurrentPlayer.playerID].transform.position;
@@ -58,25 +57,25 @@ public class PlayerManager : Singleton<PlayerManager>
         }
     }
 
-    public void MovePlayer(MessageHeader message)
+    public void MovePlayer(MessageHeader message, int playerIndex)
     {
         MoveRequest moveRequest = message as MoveRequest;
+
         switch (moveRequest.direction)
         {
             case Direction.North:
-                CurrentPlayer.TilePosition.y += 1;
+                Players[playerIndex].TilePosition.y += 1;
                 break;
             case Direction.East:
-                CurrentPlayer.TilePosition.x += 1;
+                Players[playerIndex].TilePosition.x += 1;
                 break;
             case Direction.South:
-                CurrentPlayer.TilePosition.y -= 1;
+                Players[playerIndex].TilePosition.y -= 1;
                 break;
             case Direction.West:
-                CurrentPlayer.TilePosition.x -= 1;
+                Players[playerIndex].TilePosition.x -= 1;
                 break;
-            default:
-                break;
+
         }
     }
 
@@ -102,8 +101,10 @@ public class PlayerManager : Singleton<PlayerManager>
         }
     }
 
-    public void ToggleShield()
+    public void ClaimTreasure(int i)
     {
-
+        Vector2 playerTile = PlayerManager.Instance.Players[i].TilePosition;
+        uint amount = (uint)GameManager.Instance.currentGrid.tilesArray[(int)playerTile.x, (int)playerTile.y].RandomTreasureAmount;
+        PlayerManager.Instance.Players[i].treasureAmount = amount;
     }
 }

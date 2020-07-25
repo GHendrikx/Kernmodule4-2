@@ -25,8 +25,7 @@ public class GameManager : Singleton<GameManager>
     /// <returns></returns>
     public RoomInfoMessage MakeRoomInfoMessage(int i)
     {
-        
-        byte neighbors = currentGrid.CheckNeighbors();
+        byte neighbors = currentGrid.CheckNeighbors(i);
 
         TileContent tileContent = currentGrid.TileContain(PlayerManager.Instance.Players[i].TilePosition);
 

@@ -15,7 +15,7 @@ public class ServerBehaviour : MonoBehaviour
     private NativeList<NetworkConnection> connections;
 
     private JobHandle networkJobHandle;
-
+    private PlayerTurnMessage turnMessage;
     public MessageEvent[] ServerCallbacks = new MessageEvent[(int)MessageHeader.MessageType.Count];
 
     private Queue<MessageHeader> serverMessagesQueue;
@@ -45,7 +45,7 @@ public class ServerBehaviour : MonoBehaviour
             ServerCallbacks[i] = new MessageEvent();
 
         ServerCallbacks[(int)MessageHeader.MessageType.SetName].AddListener(HandleSetName);
-        ServerCallbacks[(int)MessageHeader.MessageType.MoveRequest].AddListener(PlayerManager.Instance.MovePlayer);
+        //ServerCallbacks[(int)MessageHeader.MessageType.MoveRequest].AddListener(); Couldn't send this because he's updating to slow
 
     }
 
@@ -161,28 +161,62 @@ public class ServerBehaviour : MonoBehaviour
                             break;
                         case MessageHeader.MessageType.MoveRequest:
                             var moveRequest = NetworkManager.ReadMessage<MoveRequest>(reader, ServerMessageQueue);
-                            for (int j = 0; j < connections.Length; j++)
-                            {
-                                RoomInfoMessage roomInfo = GameManager.Instance.MakeRoomInfoMessage(j);
-                                NetworkManager.SendMessage(networkDriver, roomInfo, connections[j]);
-                            }
+                            PlayerManager.Instance.MovePlayer(moveRequest,i);
+                            SendNewRoomInfo();
                             break;
                         case MessageHeader.MessageType.AttackRequest:
+
+                            UIManager.Instance.AttackMonster(i);
+                            SendNewRoomInfo();
+                            PlayerManager.Instance.PlayerIDWithTurn++;
+                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
+                                PlayerManager.Instance.PlayerIDWithTurn = 0;
+
+                            turnMessage = new PlayerTurnMessage()
+                            {
+                                playerID = PlayerManager.Instance.PlayerIDWithTurn
+                            };
                             break;
                         case MessageHeader.MessageType.DefendRequest:
+                            NetworkManager.ReadMessage<DefendRequestMessage>(reader, serverMessagesQueue);
+                            SendNewRoomInfo();
+                            PlayerManager.Instance.PlayerIDWithTurn++;
+                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
+                                PlayerManager.Instance.PlayerIDWithTurn = 0;
+
+                            turnMessage = new PlayerTurnMessage()
+                            {
+                                playerID = PlayerManager.Instance.PlayerIDWithTurn
+                            };
+
                             break;
                         case MessageHeader.MessageType.ClaimTreasureRequest:
-                            break;
-                        case MessageHeader.MessageType.LeaveDungeonRequest:
-                            break;
-                        case MessageHeader.MessageType.Count:
-                            break;
-                    }
-                    switch (messageType)
-                    {
+                            NetworkManager.ReadMessage<ObtainTreasureMessage>(reader, serverMessagesQueue);
+                            PlayerManager.Instance.ClaimTreasure(i);
+                            SendNewRoomInfo();
+                            PlayerManager.Instance.PlayerIDWithTurn++;
+                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
+                                PlayerManager.Instance.PlayerIDWithTurn = 0;
 
-                        default:
+                            turnMessage = new PlayerTurnMessage()
+                            {
+                                playerID = PlayerManager.Instance.PlayerIDWithTurn
+                            };
                             break;
+
+                        case MessageHeader.MessageType.LeaveDungeonRequest:
+                            NetworkManager.ReadMessage<LeaveDungeonRequest>(reader, serverMessagesQueue);
+                            SendNewRoomInfo();
+                            PlayerManager.Instance.PlayerIDWithTurn++;
+                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
+                                PlayerManager.Instance.PlayerIDWithTurn = 0;
+
+                            turnMessage = new PlayerTurnMessage()
+                            {
+                                playerID = PlayerManager.Instance.PlayerIDWithTurn
+                            };
+                            break;
+
                     }
                 }
                 else if (cmd == NetworkEvent.Type.Disconnect)
@@ -196,6 +230,15 @@ public class ServerBehaviour : MonoBehaviour
         networkJobHandle = networkDriver.ScheduleUpdate();
 
         ProcessMessagesQueue();
+    }
+
+    private void SendNewRoomInfo()
+    {
+        for(int j = 0; j < connections.Length; j++)
+        {
+            RoomInfoMessage info = GameManager.Instance.MakeRoomInfoMessage(j);
+            NetworkManager.SendMessage(networkDriver, info, connections[j]);
+        }
     }
 
     private void ProcessMessagesQueue()
@@ -217,6 +260,7 @@ public class ServerBehaviour : MonoBehaviour
 
         GameObject go = new GameObject();
         Grid grid = GameObject.Instantiate(go).AddComponent<Grid>();
+        grid.GenerateGrid();
         GameManager.Instance.currentGrid = grid;
 
         for (int i = 0; i < connections.Length; i++)

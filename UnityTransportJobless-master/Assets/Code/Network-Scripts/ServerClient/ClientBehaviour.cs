@@ -121,23 +121,8 @@ public class ClientBehaviour : MonoBehaviour
                         break;
                     case MessageHeader.MessageType.EndGame:
                         break;
-                    case MessageHeader.MessageType.MoveRequest:
-                        break;
-                    case MessageHeader.MessageType.AttackRequest:
-                        break;
-                    case MessageHeader.MessageType.DefendRequest:
-                        break;
-                    case MessageHeader.MessageType.ClaimTreasureRequest:
-                        break;
-                    case MessageHeader.MessageType.LeaveDungeonRequest:
-                        break;
                     case MessageHeader.MessageType.Count:
                         break;
-                }
-                switch (messageType)
-                {
-
-
                 }
             }
             else if(cmd == NetworkEvent.Type.Disconnect)

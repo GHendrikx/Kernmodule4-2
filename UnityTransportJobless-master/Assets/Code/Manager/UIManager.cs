@@ -42,8 +42,8 @@ public class UIManager : Singleton<UIManager>
     private SideMenu sideMenu;
 
     public GameObject[] doors;
-    public GameObject monster;
-    public GameObject treasure;
+    public GameObject monsterSprite;
+    public GameObject treasureSprite;
 
     private void Update()
     {
@@ -84,12 +84,34 @@ public class UIManager : Singleton<UIManager>
 
         if (directions.HasFlag((Enum)Direction.North))
             doors[0].SetActive(true);
+        else
+            doors[0].SetActive(false);
+
         if (directions.HasFlag((Enum)Direction.East))
             doors[1].SetActive(true);
+        else
+            doors[1].SetActive(false);
+
         if (directions.HasFlag((Enum)Direction.South))
             doors[2].SetActive(true);
+        else
+            doors[3].SetActive(false);
+
         if (directions.HasFlag((Enum)Direction.West))
             doors[3].SetActive(true);
+        else
+            doors[3].SetActive(false);
+
+        if (info.ContainsMonster == 1)
+            monsterSprite.gameObject.SetActive(true);
+        else
+            monsterSprite.gameObject.SetActive(false);
+
+        if (info.TreasureInRoom == 1)
+            treasureSprite.gameObject.SetActive(true);
+        else
+            treasureSprite.gameObject.SetActive(false);
+
     }
 
     public void CheckTurn(MessageHeader playerTurnMessage)
@@ -105,5 +127,17 @@ public class UIManager : Singleton<UIManager>
     {
         lobbyPanel.SetActive(false);
         gamePanel.SetActive(true);
+    }
+
+    public void AttackMonster(int i)
+    {
+        Vector2 currentPosition = PlayerManager.Instance.Players[i].TilePosition;
+        Tile tile = GameManager.Instance.currentGrid.tilesArray[(int)currentPosition.x, (int)currentPosition.y];
+        tile.MonsterHealth = 0;
+
+        if (tile.Content == TileContent.Monster)
+            tile.Content = TileContent.None;
+        else
+            tile.Content = TileContent.Treasure;
     }
 }

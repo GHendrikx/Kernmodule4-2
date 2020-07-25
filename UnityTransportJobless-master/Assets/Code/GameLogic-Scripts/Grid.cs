@@ -6,22 +6,23 @@ public class Grid : MonoBehaviour
     Vector2 gridSize = new Vector2(10, 10);
     public List<Tile> tiles = new List<Tile>();
     public Tile[,] tilesArray;
-    public void Start()
+    public void GenerateGrid()
     {
+        Debug.Log("Generating");
         tilesArray = new Tile[(int)gridSize.x, (int)gridSize.y];
 
         for (int x = 0; x < gridSize.x; x++)
             for (int y = 0; y < gridSize.y; y++)
-                tilesArray[x, y] = new Tile(x,y);
+                tilesArray[x, y] = new Tile(x, y);
 
-        tilesArray[0,0].SetBeginOrExitTile(TileContent.Begin);
+        tilesArray[0, 0].SetBeginOrExitTile(TileContent.Begin);
 
-        tilesArray[9,9].SetBeginOrExitTile(TileContent.Exit);
+        tilesArray[9, 9].SetBeginOrExitTile(TileContent.Exit);
     }
 
-    public byte CheckNeighbors()
+    public byte CheckNeighbors(int i)
     {
-        Players currentPlayer = PlayerManager.Instance.CurrentPlayer;
+        Players currentPlayer = PlayerManager.Instance.Players[i];
 
         byte north = 0;
         byte east = 0;
@@ -29,14 +30,28 @@ public class Grid : MonoBehaviour
         byte west = 0;
 
         Vector2 currentPosition = currentPlayer.TilePosition;
-        float x = currentPosition.x;
-        float y = currentPosition.y;
+        int x = (int)currentPosition.x;
+        int y = (int)currentPosition.y;
 
-        Tile northTile = tilesArray[(int)currentPosition.x, (int)currentPosition.y + 1];
-        Tile southTile = tilesArray[(int)currentPosition.x, (int)currentPosition.y - 1];
-        Tile eastTile = tilesArray[(int)currentPosition.x + 1, (int)currentPosition.y];
-        Tile westTile = tilesArray[(int)currentPosition.x - 1, (int)currentPosition.y];
+        Debug.Log(currentPosition);
 
+        Tile southTile = null;
+        Tile northTile = null;
+        Tile eastTile = null;
+        Tile westTile = null;
+
+        //Y
+        if(currentPosition.y + 1 < 10)
+        northTile = tilesArray[(int)currentPosition.x, (int)currentPosition.y + 1];
+        if((int)currentPosition.y - 1 > -1)
+        southTile = tilesArray[(int)currentPosition.x, (int)currentPosition.y - 1];
+
+        //X
+        if ((int)currentPosition.x + 1 < 10)
+        eastTile = tilesArray[(int)currentPosition.x + 1, (int)currentPosition.y];
+        if(currentPosition.x - 1 > -1)
+        westTile = tilesArray[(int)currentPosition.x - 1, (int)currentPosition.y];
+        
         if (northTile != null)
             north = 0b00000001;
         if (southTile != null)
@@ -47,6 +62,7 @@ public class Grid : MonoBehaviour
             east = 0b00000010;
 
         byte answer = (byte)(north | east | south | west);
+
         return answer;
     }
 
@@ -55,6 +71,7 @@ public class Grid : MonoBehaviour
         return tilesArray[(int)position.x, (int)position.y].Content;
     }
 }
+
 public class Tile
 {
     public int X;
@@ -106,6 +123,7 @@ public enum TileContent
     Exit,
     Monster,
     Treasure,
-    Both
+    Both,
+    None
 }
 

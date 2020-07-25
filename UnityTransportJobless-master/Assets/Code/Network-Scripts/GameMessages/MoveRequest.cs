@@ -26,9 +26,9 @@ namespace Assets.Code
 [Flags]
 public enum Direction
 {
-    North,
-    East,
-    South,
-    West
+    North = 1,
+    East = 2,
+    South = 4,
+    West = 8
 }
 
