@@ -165,11 +165,10 @@ public class ServerBehaviour : MonoBehaviour
                             break;
                         case MessageHeader.MessageType.MoveRequest:
                             var moveRequest = NetworkManager.ReadMessage<MoveRequest>(reader, ServerMessageQueue);
-
                             MakeLeaveRoomMessage(i);
                             PlayerManager.Instance.MovePlayer(moveRequest, i);
                             MakeEnterRoommessage(i);
-
+                            Debug.Log(PlayerManager.Instance.Players[i].TilePosition);
                             NewTurnMessage();
                             break;
 
@@ -257,6 +256,7 @@ public class ServerBehaviour : MonoBehaviour
     private void NewTurnMessage()
     {
         PlayerManager.Instance.PlayerIDWithTurn++;
+        Debug.Log(PlayerManager.Instance.PlayerIDWithTurn++ + " playermanager players count" + PlayerManager.Instance.Players.Count);
         if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
             PlayerManager.Instance.PlayerIDWithTurn = 0;
 

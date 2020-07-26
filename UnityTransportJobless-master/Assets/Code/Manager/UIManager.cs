@@ -72,14 +72,17 @@ public class UIManager : Singleton<UIManager>
     public void EnterPlayer(MessageHeader playerEnter)
     {
         PlayerEnterRoomMessage enterRoom = playerEnter as PlayerEnterRoomMessage;
-        Players enterRoomplayer = PlayerManager.Instance.Players[enterRoom.PlayerID];
-        Debug.Log("SpriteEnterRoom");
-        enterRoomplayer.Sprite.SetActive(true);
+        Players enterRoomPlayer = PlayerManager.Instance.Players[enterRoom.PlayerID];
+        Debug.Log("SpriteEnterRoom " + enterRoomPlayer);
+
+        if(enterRoomPlayer.Sprite != null)
+            enterRoomPlayer.Sprite.SetActive(true);
     }
     public void LeavePlayer(MessageHeader playerLeave)
     {
         PlayerLeaveRoomMessage leaveRoom = playerLeave as PlayerLeaveRoomMessage;
         Players player = PlayerManager.Instance.Players[leaveRoom.PlayerID];
+
         if (player.Sprite != null)
             player.Sprite.gameObject.SetActive(false);
     }
@@ -161,7 +164,7 @@ public class UIManager : Singleton<UIManager>
     {
         PlayerTurnMessage turnMessage = playerTurnMessage as PlayerTurnMessage;
         PlayerManager.Instance.PlayerIDWithTurn = turnMessage.playerID;
-
+        Debug.Log(PlayerManager.Instance.CurrentPlayer.playerID);
         //Means its the players Turn 
         if (turnMessage.playerID == PlayerManager.Instance.CurrentPlayer.playerID)
             sideMenu.SlideMenu();

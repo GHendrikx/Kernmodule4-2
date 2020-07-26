@@ -1,4 +1,5 @@
 ﻿using Assets.Code;
+using System;
 using UnityEngine;
 using UnityEngine.Timers;
 
@@ -42,9 +43,6 @@ public class SideMenu : MonoBehaviour
     /// </summary>
     public void SendDefendRequest()
     {
-        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
-            return;
-
         DefendRequestMessage defendRequest = new DefendRequestMessage();
         clientBehaviour.SendRequest(defendRequest);
         PlayerManager.Instance.CurrentPlayer.Shield.SetActive(true);
@@ -55,9 +53,6 @@ public class SideMenu : MonoBehaviour
     /// </summary>
     public void SendAttackRequest()
     {
-        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
-            return;
-
         AttackRequestMessage attackRequest = new AttackRequestMessage();
         clientBehaviour.SendRequest(attackRequest);
         Players currentPlayer = PlayerManager.Instance.CurrentPlayer;
@@ -74,9 +69,6 @@ public class SideMenu : MonoBehaviour
 
     public void SendClaimTreasureRequest()
     {
-        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
-            return;
-
         ObtainTreasureMessage obtainTreasureMessage = new ObtainTreasureMessage();
         clientBehaviour.SendRequest(obtainTreasureMessage);
     }
@@ -91,6 +83,12 @@ public class SideMenu : MonoBehaviour
     /// <param name="direction"></param>
     public void CreateMoveRequest(int direction)
     {
+        if (!SlideOut)
+        {
+            Debug.Log("NOT YOUR TURN");
+            return;
+        }
+
         Direction dir = (Direction)direction;
 
         MoveRequest moveRequest = new MoveRequest()
@@ -99,6 +97,8 @@ public class SideMenu : MonoBehaviour
         };
 
         this.moveRequest = moveRequest;
+        TimerManager.Instance.AddTimer(DeactivateSprite, 1);
+
 
         switch (dir)
         {
@@ -120,9 +120,22 @@ public class SideMenu : MonoBehaviour
         TimerManager.Instance.AddTimer(SendMoveRequest, 1);
     }
 
+    private void DeactivateSprite()
+    {
+        for (int i = 0; i < PlayerManager.Instance.Players.Count; i++)
+        {
+            if (PlayerManager.Instance.Players[i] == PlayerManager.Instance.CurrentPlayer)
+                continue;
+            else
+            {
+                if (PlayerManager.Instance.Players[i].Sprite != null)
+                    PlayerManager.Instance.Players[i].Sprite.gameObject.SetActive(false);
+            }
+        }
+    }
+
     public void SendMoveRequest()
     {
-        PlayerManager.Instance.MovePlayer(moveRequest, PlayerManager.Instance.CurrentPlayer.playerID);
         clientBehaviour.SendRequest(moveRequest);
     }
 

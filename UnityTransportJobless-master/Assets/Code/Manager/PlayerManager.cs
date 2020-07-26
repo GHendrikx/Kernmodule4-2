@@ -91,7 +91,7 @@ public class PlayerManager : Singleton<PlayerManager>
 
     public void SpawnSprite(Players player)
     {
-
+        Debug.Log("HI");
         GameObject go = GameObject.Instantiate(spritePrefab);
         player.Sprite = go;
         go.transform.parent = UIManager.Instance.GamePanel.transform;
