@@ -21,7 +21,7 @@ public class SideMenu : MonoBehaviour
     public void Update()
     {
 #if UNITY_EDITOR
-        if (Input.GetKeyUp(KeyCode.M))
+        if (Input.GetKeyUp(KeyCode.L))
             SlideMenu();
 #endif
     }
@@ -91,9 +91,6 @@ public class SideMenu : MonoBehaviour
     /// <param name="direction"></param>
     public void CreateMoveRequest(int direction)
     {
-        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
-            return;
-
         Direction dir = (Direction)direction;
 
         MoveRequest moveRequest = new MoveRequest()
@@ -125,7 +122,7 @@ public class SideMenu : MonoBehaviour
 
     public void SendMoveRequest()
     {
-
+        PlayerManager.Instance.MovePlayer(moveRequest, PlayerManager.Instance.CurrentPlayer.playerID);
         clientBehaviour.SendRequest(moveRequest);
     }
 

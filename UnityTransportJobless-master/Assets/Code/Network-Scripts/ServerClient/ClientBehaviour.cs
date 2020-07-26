@@ -19,7 +19,7 @@ public class ClientBehaviour : MonoBehaviour
     public string playerName;
 
     // Use this for initialization
-    void Start()
+    private void Start()
     {
         networkDriver = NetworkDriver.Create();
         connection = default;
@@ -35,8 +35,8 @@ public class ClientBehaviour : MonoBehaviour
         ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(UIManager.Instance.SwitchToGamePanel);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerTurn].AddListener(UIManager.Instance.CheckTurn);
         ClientCallbacks[(int)MessageHeader.MessageType.RoomInfo].AddListener(UIManager.Instance.ShowNewRoom);
-        ClientCallbacks[(int)MessageHeader.MessageType.PlayerEnterRoom].AddListener(UIManager.Instance.EnterSprite);
-        ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeaveRoom].AddListener(UIManager.Instance.DisableSprite);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerEnterRoom].AddListener(UIManager.Instance.EnterPlayer);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeaveRoom].AddListener(UIManager.Instance.LeavePlayer);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeft].AddListener(UIManager.Instance.DisableSpawnLabel);
 
 

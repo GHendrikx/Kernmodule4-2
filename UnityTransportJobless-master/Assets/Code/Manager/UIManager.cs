@@ -56,7 +56,7 @@ public class UIManager : Singleton<UIManager>
     public GameObject monsterSprite;
     public GameObject treasureSprite;
     public List<GameObject> labels = new List<GameObject>();
-
+    public Text debugText;
     private void Update()
     {
         if (playButton.gameObject.activeInHierarchy)
@@ -66,15 +66,22 @@ public class UIManager : Singleton<UIManager>
             else
                 playButton.interactable = false;
         }
-
+        
     }
 
-    public void EnterSprite(MessageHeader playerEnter)
+    public void EnterPlayer(MessageHeader playerEnter)
     {
-        Debug.Log("Leave");
         PlayerEnterRoomMessage enterRoom = playerEnter as PlayerEnterRoomMessage;
-        Players player = PlayerManager.Instance.Players[enterRoom.PlayerID];
-        player.Sprite.SetActive(true);
+        Players enterRoomplayer = PlayerManager.Instance.Players[enterRoom.PlayerID];
+        Debug.Log("SpriteEnterRoom");
+        enterRoomplayer.Sprite.SetActive(true);
+    }
+    public void LeavePlayer(MessageHeader playerLeave)
+    {
+        PlayerLeaveRoomMessage leaveRoom = playerLeave as PlayerLeaveRoomMessage;
+        Players player = PlayerManager.Instance.Players[leaveRoom.PlayerID];
+        if (player.Sprite != null)
+            player.Sprite.gameObject.SetActive(false);
     }
 
     public void DisableSpawnLabel(MessageHeader message)
@@ -92,13 +99,6 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    public void DisableSprite(MessageHeader playerLeave)
-    {
-        Debug.Log("Leave");
-        PlayerLeaveRoomMessage leaveRoom = playerLeave as PlayerLeaveRoomMessage;
-        Players player = PlayerManager.Instance.Players[leaveRoom.PlayerID];
-        player.Sprite.SetActive(false);
-    }
 
     /// <summary>
     /// Spawn the label in the lobby
@@ -107,7 +107,7 @@ public class UIManager : Singleton<UIManager>
     {
         GameObject go = GameObject.Instantiate(PlayerLabel);
         go.transform.parent = Content.transform;
-        go.GetComponentInChildren<Text>().text = player.playerID + player.clientName;
+        go.GetComponentInChildren<Text>().text = player.playerID + " " + player.clientName;
         labels.Add(go);
         Color playerColor = new Color();
 

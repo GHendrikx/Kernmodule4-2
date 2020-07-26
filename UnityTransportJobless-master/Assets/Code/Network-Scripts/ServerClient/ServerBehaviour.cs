@@ -4,6 +4,7 @@ using Unity.Networking.Transport;
 using Unity.Collections;
 using Assets.Code;
 using Unity.Jobs;
+using System;
 
 public class ServerBehaviour : MonoBehaviour
 {
@@ -39,7 +40,6 @@ public class ServerBehaviour : MonoBehaviour
 
         for (int i = 0; i < ServerCallbacks.Length; i++)
             ServerCallbacks[i] = new MessageEvent();
-
         ServerCallbacks[(int)MessageHeader.MessageType.SetName].AddListener(HandleSetName);
         ServerCallbacks[(int)MessageHeader.MessageType.PlayerLeft].AddListener(DisconnectClient);
         //ServerCallbacks[(int)MessageHeader.MessageType.MoveRequest].AddListener(); Couldn't send this because he's updating to slow
@@ -166,40 +166,10 @@ public class ServerBehaviour : MonoBehaviour
                         case MessageHeader.MessageType.MoveRequest:
                             var moveRequest = NetworkManager.ReadMessage<MoveRequest>(reader, ServerMessageQueue);
 
-                            for (int j = 0; j < connections.Length; j++)
-                            {
-                                Players currentPlayer = PlayerManager.Instance.Players[i];
-                                Players compairePlayer = PlayerManager.Instance.Players[j];
-                                
-                                if (currentPlayer.TilePosition == compairePlayer.TilePosition)
-                                {
-                                    var LeaveRoom = new PlayerLeaveRoomMessage()
-                                    {
-                                        PlayerID = PlayerManager.Instance.Players[i].playerID
-                                    };
-                                    NetworkManager.SendMessage(networkDriver, LeaveRoom, connections[j]);
-                                }
-                            }
-
+                            MakeLeaveRoomMessage(i);
                             PlayerManager.Instance.MovePlayer(moveRequest, i);
-                            SendNewRoomInfo();
+                            MakeEnterRoommessage(i);
 
-                            for (int j = 0; j < connections.Length; j++)
-                            {
-                                Players currentPlayer = PlayerManager.Instance.Players[i];
-                                Players compairePlayer = PlayerManager.Instance.Players[j];
-
-                                if (currentPlayer.TilePosition == compairePlayer.TilePosition)
-                                {
-
-                                    var enterRoom = new PlayerEnterRoomMessage()
-                                    {
-                                        PlayerID = PlayerManager.Instance.Players[j].playerID
-                                    };
-
-                                    NetworkManager.SendMessage(networkDriver, enterRoom, connections[j]);
-                                }
-                            }
                             NewTurnMessage();
                             break;
 
@@ -241,6 +211,49 @@ public class ServerBehaviour : MonoBehaviour
 
         ProcessMessagesQueue();
     }
+
+    private void MakeEnterRoommessage(int i)
+    {
+        for (int j = 0; j < connections.Length; j++)
+        {
+            Players currentPlayer = PlayerManager.Instance.Players[i];
+            Players compairePlayer = PlayerManager.Instance.Players[j];
+
+            if (currentPlayer.TilePosition == compairePlayer.TilePosition)
+            {
+
+                var enterRoom = new PlayerEnterRoomMessage()
+                {
+                    PlayerID = PlayerManager.Instance.Players[i].playerID
+                };
+
+                NetworkManager.SendMessage(networkDriver, enterRoom, connections[j]);
+            }
+        }
+        SendNewRoomInfo();
+    }
+
+    private void MakeLeaveRoomMessage(int i)
+    {
+        Debug.Log("leave");
+
+        for (int j = 0; j < connections.Length; j++)
+        {
+            Players currentPlayer = PlayerManager.Instance.Players[i];
+            Players compairePlayer = PlayerManager.Instance.Players[j];
+
+            if (currentPlayer.TilePosition == compairePlayer.TilePosition)
+            {
+                var LeaveRoom = new PlayerLeaveRoomMessage()
+                {
+                    PlayerID = PlayerManager.Instance.Players[i].playerID
+                };
+                NetworkManager.SendMessage(networkDriver, LeaveRoom, connections[j]);
+            }
+        }
+        SendNewRoomInfo();
+    }
+
     private void NewTurnMessage()
     {
         PlayerManager.Instance.PlayerIDWithTurn++;
@@ -278,7 +291,7 @@ public class ServerBehaviour : MonoBehaviour
         networkJobHandle.Complete();
         StartGameMessage startGameMessage = new StartGameMessage()
         {
-            StartHP = 50
+            StartHP = 10
         };
 
         GameObject go = new GameObject();

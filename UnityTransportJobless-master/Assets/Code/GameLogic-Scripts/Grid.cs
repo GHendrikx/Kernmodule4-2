@@ -7,15 +7,16 @@ public class Grid : MonoBehaviour
 
     public void GenerateGrid()
     {
-        Debug.Log("Generating");
         tilesArray = new Tile[(int)gridSize.x, (int)gridSize.y];
 
         for (int x = 0; x < gridSize.x; x++)
             for (int y = 0; y < gridSize.y; y++)
                 tilesArray[x, y] = new Tile(x, y);
 
+        tilesArray[0, 0].Content = TileContent.None;
         tilesArray[0, 0].SetBeginOrExitTile(TileContent.Begin);
 
+        tilesArray[9, 9].Content = TileContent.None;
         tilesArray[9, 9].SetBeginOrExitTile(TileContent.Exit);
     }
 
