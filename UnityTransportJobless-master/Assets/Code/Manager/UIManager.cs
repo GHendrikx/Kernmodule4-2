@@ -55,6 +55,7 @@ public class UIManager : Singleton<UIManager>
     public GameObject[] doors;
     public GameObject monsterSprite;
     public GameObject treasureSprite;
+    public List<GameObject> labels = new List<GameObject>();
 
     private void Update()
     {
@@ -68,6 +69,37 @@ public class UIManager : Singleton<UIManager>
 
     }
 
+    public void EnterSprite(MessageHeader playerEnter)
+    {
+        Debug.Log("Leave");
+        PlayerEnterRoomMessage enterRoom = playerEnter as PlayerEnterRoomMessage;
+        Players player = PlayerManager.Instance.Players[enterRoom.PlayerID];
+        player.Sprite.SetActive(true);
+    }
+
+    public void DisableSpawnLabel(MessageHeader message)
+    {
+        PlayerLeftMessage playerLeftMessage = message as PlayerLeftMessage;
+        for (int i = 0; i < labels.Count; i++)
+        {
+            Text textComponent = labels[i].GetComponentInChildren<Text>();
+            if (textComponent.text.Contains(playerLeftMessage.playerLeftID.ToString()))
+            {
+                GameObject.Destroy(labels[i].gameObject);
+                PlayerManager.Instance.Players[i].Sprite.SetActive(false);
+                PlayerManager.Instance.Players[i] = null;
+            }
+        }
+    }
+
+    public void DisableSprite(MessageHeader playerLeave)
+    {
+        Debug.Log("Leave");
+        PlayerLeaveRoomMessage leaveRoom = playerLeave as PlayerLeaveRoomMessage;
+        Players player = PlayerManager.Instance.Players[leaveRoom.PlayerID];
+        player.Sprite.SetActive(false);
+    }
+
     /// <summary>
     /// Spawn the label in the lobby
     /// </summary>
@@ -75,17 +107,17 @@ public class UIManager : Singleton<UIManager>
     {
         GameObject go = GameObject.Instantiate(PlayerLabel);
         go.transform.parent = Content.transform;
-        go.GetComponentInChildren<Text>().text = player.clientName;
-
+        go.GetComponentInChildren<Text>().text = player.playerID + player.clientName;
+        labels.Add(go);
         Color playerColor = new Color();
 
         for (int i = 0; i < go.transform.childCount; i++)
         {
             Image image = go.transform.GetChild(i).GetComponent<Image>();
-            if(image != null)
+            if (image != null)
                 image.color = playerColor.FromUInt(player.clientColor);
         }
-        
+
     }
 
     public void ShowNewRoom(MessageHeader roomInfo)
@@ -131,7 +163,7 @@ public class UIManager : Singleton<UIManager>
         PlayerManager.Instance.PlayerIDWithTurn = turnMessage.playerID;
 
         //Means its the players Turn 
-        if(turnMessage.playerID == PlayerManager.Instance.CurrentPlayer.playerID)
+        if (turnMessage.playerID == PlayerManager.Instance.CurrentPlayer.playerID)
             sideMenu.SlideMenu();
     }
 

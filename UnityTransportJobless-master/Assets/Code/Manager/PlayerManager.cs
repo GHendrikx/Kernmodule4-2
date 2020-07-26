@@ -16,6 +16,17 @@ public class PlayerManager : Singleton<PlayerManager>
     public int PlayerIDWithTurn = 0;
     [SerializeField]
     private GameObject[] spawnPositions;
+    public GameObject[] SpawnPositions
+    {
+        get
+        {
+            return spawnPositions;
+        }
+        set
+        {
+            spawnPositions = value;
+        }
+    }
 
     /// <summary>
     /// Add playerLabel to the Lobby
@@ -82,6 +93,7 @@ public class PlayerManager : Singleton<PlayerManager>
     {
 
         GameObject go = GameObject.Instantiate(spritePrefab);
+        player.Sprite = go;
         go.transform.parent = UIManager.Instance.GamePanel.transform;
 
         go.transform.position = spawnPositions[player.playerID].transform.position;

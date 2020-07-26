@@ -1,13 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
 using Unity.Collections;
-using System.IO;
 using Assets.Code;
-using UnityEngine.Events;
 using Unity.Jobs;
-using UnityEditor;
 
 public class ServerBehaviour : MonoBehaviour
 {
@@ -45,8 +41,15 @@ public class ServerBehaviour : MonoBehaviour
             ServerCallbacks[i] = new MessageEvent();
 
         ServerCallbacks[(int)MessageHeader.MessageType.SetName].AddListener(HandleSetName);
+        ServerCallbacks[(int)MessageHeader.MessageType.PlayerLeft].AddListener(DisconnectClient);
         //ServerCallbacks[(int)MessageHeader.MessageType.MoveRequest].AddListener(); Couldn't send this because he's updating to slow
 
+    }
+
+    private void DisconnectClient(MessageHeader arg0)
+    {
+        foreach(NetworkConnection c in connections)
+            NetworkManager.SendMessage(networkDriver, arg0, c);
     }
 
     private void HandleSetName(MessageHeader message)
@@ -70,7 +73,8 @@ public class ServerBehaviour : MonoBehaviour
             {
                 //Accepted Connection
                 connections.Add(c);
-                var colour = (Color32)Random.ColorHSV();
+               
+                var colour = (Color32)UnityEngine.Random.ColorHSV();
                 var welcomeMessage = new WelcomeMessage
                 {
                     PlayerID = playerID,
@@ -161,84 +165,66 @@ public class ServerBehaviour : MonoBehaviour
                             break;
                         case MessageHeader.MessageType.MoveRequest:
                             var moveRequest = NetworkManager.ReadMessage<MoveRequest>(reader, ServerMessageQueue);
-                            PlayerManager.Instance.MovePlayer(moveRequest,i);
-                            SendNewRoomInfo();
-
-                            PlayerManager.Instance.PlayerIDWithTurn++;
-                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
-                                PlayerManager.Instance.PlayerIDWithTurn = 0;
-
-                            turnMessage = new PlayerTurnMessage()
-                            {
-                                playerID = PlayerManager.Instance.PlayerIDWithTurn
-                            };
-
-                            for(int j = 0; j < connections.Length; j++)
-                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
-
-                            break;
-                        case MessageHeader.MessageType.AttackRequest:
-
-                            UIManager.Instance.AttackMonster(i);
-                            SendNewRoomInfo();
-
-                            PlayerManager.Instance.PlayerIDWithTurn++;
-                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
-                                PlayerManager.Instance.PlayerIDWithTurn = 0;
-
-                            turnMessage = new PlayerTurnMessage()
-                            {
-                                playerID = PlayerManager.Instance.PlayerIDWithTurn
-                            };
 
                             for (int j = 0; j < connections.Length; j++)
-                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
+                            {
+                                Players currentPlayer = PlayerManager.Instance.Players[i];
+                                Players compairePlayer = PlayerManager.Instance.Players[j];
+                                
+                                if (currentPlayer.TilePosition == compairePlayer.TilePosition)
+                                {
+                                    var LeaveRoom = new PlayerLeaveRoomMessage()
+                                    {
+                                        PlayerID = PlayerManager.Instance.Players[i].playerID
+                                    };
+                                    NetworkManager.SendMessage(networkDriver, LeaveRoom, connections[j]);
+                                }
+                            }
 
+                            PlayerManager.Instance.MovePlayer(moveRequest, i);
+                            SendNewRoomInfo();
+
+                            for (int j = 0; j < connections.Length; j++)
+                            {
+                                Players currentPlayer = PlayerManager.Instance.Players[i];
+                                Players compairePlayer = PlayerManager.Instance.Players[j];
+
+                                if (currentPlayer.TilePosition == compairePlayer.TilePosition)
+                                {
+
+                                    var enterRoom = new PlayerEnterRoomMessage()
+                                    {
+                                        PlayerID = PlayerManager.Instance.Players[j].playerID
+                                    };
+
+                                    NetworkManager.SendMessage(networkDriver, enterRoom, connections[j]);
+                                }
+                            }
+                            NewTurnMessage();
+                            break;
+
+                        case MessageHeader.MessageType.AttackRequest:
+                            UIManager.Instance.AttackMonster(i);
+                            SendNewRoomInfo();
+                            NewTurnMessage();
                             break;
                         case MessageHeader.MessageType.DefendRequest:
                             NetworkManager.ReadMessage<DefendRequestMessage>(reader, serverMessagesQueue);
                             SendNewRoomInfo();
-
-                            PlayerManager.Instance.PlayerIDWithTurn++;
-                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
-                                PlayerManager.Instance.PlayerIDWithTurn = 0;
-
-                            turnMessage = new PlayerTurnMessage()
-                            {
-                                playerID = PlayerManager.Instance.PlayerIDWithTurn
-                            };
-
-                            for (int j = 0; j < connections.Length; j++)
-                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
+                            NewTurnMessage();
                             break;
+
                         case MessageHeader.MessageType.ClaimTreasureRequest:
                             NetworkManager.ReadMessage<ObtainTreasureMessage>(reader, serverMessagesQueue);
                             PlayerManager.Instance.ClaimTreasure(i);
                             SendNewRoomInfo();
-
-                            PlayerManager.Instance.PlayerIDWithTurn++;
-                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
-                                PlayerManager.Instance.PlayerIDWithTurn = 0;
-
-                            turnMessage = new PlayerTurnMessage()
-                            {
-                                playerID = PlayerManager.Instance.PlayerIDWithTurn
-                            };
-                            for (int j = 0; j < connections.Length; j++)
-                                NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
+                            NewTurnMessage();
                             break;
 
                         case MessageHeader.MessageType.LeaveDungeonRequest:
                             NetworkManager.ReadMessage<LeaveDungeonRequest>(reader, serverMessagesQueue);
                             SendNewRoomInfo();
-                            PlayerManager.Instance.PlayerIDWithTurn++;
-                            if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
-                                PlayerManager.Instance.PlayerIDWithTurn = 0;
-
-                            turnMessage = new PlayerTurnMessage()
-                            {
-                                playerID = PlayerManager.Instance.PlayerIDWithTurn
-                            };
+                            NewTurnMessage();
                             break;
 
                     }
@@ -255,10 +241,23 @@ public class ServerBehaviour : MonoBehaviour
 
         ProcessMessagesQueue();
     }
+    private void NewTurnMessage()
+    {
+        PlayerManager.Instance.PlayerIDWithTurn++;
+        if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
+            PlayerManager.Instance.PlayerIDWithTurn = 0;
 
+        turnMessage = new PlayerTurnMessage()
+        {
+            playerID = PlayerManager.Instance.PlayerIDWithTurn
+        };
+
+        for (int j = 0; j < connections.Length; j++)
+            NetworkManager.SendMessage(networkDriver, turnMessage, connections[j]);
+    }
     private void SendNewRoomInfo()
     {
-        for(int j = 0; j < connections.Length; j++)
+        for (int j = 0; j < connections.Length; j++)
         {
             RoomInfoMessage info = GameManager.Instance.MakeRoomInfoMessage(j);
             NetworkManager.SendMessage(networkDriver, info, connections[j]);

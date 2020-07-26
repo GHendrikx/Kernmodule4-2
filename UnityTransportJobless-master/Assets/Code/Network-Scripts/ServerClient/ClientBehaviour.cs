@@ -35,6 +35,12 @@ public class ClientBehaviour : MonoBehaviour
         ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(UIManager.Instance.SwitchToGamePanel);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerTurn].AddListener(UIManager.Instance.CheckTurn);
         ClientCallbacks[(int)MessageHeader.MessageType.RoomInfo].AddListener(UIManager.Instance.ShowNewRoom);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerEnterRoom].AddListener(UIManager.Instance.EnterSprite);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeaveRoom].AddListener(UIManager.Instance.DisableSprite);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeft].AddListener(UIManager.Instance.DisableSpawnLabel);
+
+
+
         var endpoint = NetworkEndPoint.LoopbackIpv4;
         endpoint.Port = 9000;
         connection = networkDriver.Connect(endpoint);
@@ -52,18 +58,18 @@ public class ClientBehaviour : MonoBehaviour
     {
         networkJobHandle.Complete();
 
-        if(!connection.IsCreated)
+        if (!connection.IsCreated)
             return;
 
         DataStreamReader reader;
         NetworkEvent.Type cmd;
-        while((cmd = connection.PopEvent(networkDriver, out reader)) != NetworkEvent.Type.Empty)
+        while ((cmd = connection.PopEvent(networkDriver, out reader)) != NetworkEvent.Type.Empty)
         {
-            if(cmd == NetworkEvent.Type.Connect)
+            if (cmd == NetworkEvent.Type.Connect)
             {
                 Debug.Log("Connected to server");
             }
-            else if(cmd == NetworkEvent.Type.Data)
+            else if (cmd == NetworkEvent.Type.Data)
             {
                 var messageType = (MessageHeader.MessageType)reader.ReadUShort();
                 switch (messageType)
@@ -76,7 +82,7 @@ public class ClientBehaviour : MonoBehaviour
                         NewPlayerMessage newPlayerMessage = (NewPlayerMessage)NetworkManager.ReadMessage<NewPlayerMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.Welcome:
-                        var welcomeMessage = (WelcomeMessage)NetworkManager.ReadMessage<WelcomeMessage>(reader,ClientMessagesQueue) as WelcomeMessage;
+                        var welcomeMessage = (WelcomeMessage)NetworkManager.ReadMessage<WelcomeMessage>(reader, ClientMessagesQueue) as WelcomeMessage;
 
                         var setNameMessage = new SetNameMessage
                         {
@@ -93,6 +99,7 @@ public class ClientBehaviour : MonoBehaviour
                     case MessageHeader.MessageType.RequestDenied:
                         break;
                     case MessageHeader.MessageType.PlayerLeft:
+                        NetworkManager.ReadMessage<PlayerLeftMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.StartGame:
                         NetworkManager.ReadMessage<StartGameMessage>(reader, ClientMessagesQueue);
@@ -104,8 +111,10 @@ public class ClientBehaviour : MonoBehaviour
                         NetworkManager.ReadMessage<RoomInfoMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerEnterRoom:
+                        NetworkManager.ReadMessage<PlayerLeaveRoomMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerLeaveRoom:
+                        NetworkManager.ReadMessage<PlayerLeaveRoomMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.ObtainTreasure:
                         break;
@@ -125,7 +134,7 @@ public class ClientBehaviour : MonoBehaviour
                         break;
                 }
             }
-            else if(cmd == NetworkEvent.Type.Disconnect)
+            else if (cmd == NetworkEvent.Type.Disconnect)
             {
                 Debug.Log("Disconnected from server");
                 connection = default;
@@ -148,6 +157,9 @@ public class ClientBehaviour : MonoBehaviour
 
     public void DisconnectPlayer()
     {
+        var playerLeftMessage = new PlayerLeftMessage();
+        playerLeftMessage.playerLeftID = (uint)PlayerManager.Instance.CurrentPlayer.playerID;
+        NetworkManager.SendMessage(networkDriver, playerLeftMessage, connection);
         connection.Disconnect(networkDriver);
     }
 

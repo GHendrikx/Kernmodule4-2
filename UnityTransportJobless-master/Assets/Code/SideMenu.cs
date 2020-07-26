@@ -1,13 +1,6 @@
 ﻿using Assets.Code;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 using UnityEngine.Timers;
-using UnityEngine.UI;
 
 public class SideMenu : MonoBehaviour
 {
@@ -49,6 +42,9 @@ public class SideMenu : MonoBehaviour
     /// </summary>
     public void SendDefendRequest()
     {
+        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
+            return;
+
         DefendRequestMessage defendRequest = new DefendRequestMessage();
         clientBehaviour.SendRequest(defendRequest);
         PlayerManager.Instance.CurrentPlayer.Shield.SetActive(true);
@@ -59,12 +55,15 @@ public class SideMenu : MonoBehaviour
     /// </summary>
     public void SendAttackRequest()
     {
+        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
+            return;
+
         AttackRequestMessage attackRequest = new AttackRequestMessage();
         clientBehaviour.SendRequest(attackRequest);
         Players currentPlayer = PlayerManager.Instance.CurrentPlayer;
         Tile currentTile = GameManager.Instance.currentGrid.tilesArray[(int)currentPlayer.TilePosition.x, (int)currentPlayer.TilePosition.y];
         currentTile.MonsterHealth = 0;
-        
+
         if (currentTile.Content == TileContent.Both)
             currentTile.Content = TileContent.Treasure;
         else
@@ -75,6 +74,9 @@ public class SideMenu : MonoBehaviour
 
     public void SendClaimTreasureRequest()
     {
+        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
+            return;
+
         ObtainTreasureMessage obtainTreasureMessage = new ObtainTreasureMessage();
         clientBehaviour.SendRequest(obtainTreasureMessage);
     }
@@ -89,6 +91,9 @@ public class SideMenu : MonoBehaviour
     /// <param name="direction"></param>
     public void CreateMoveRequest(int direction)
     {
+        if (PlayerManager.Instance.CurrentPlayer != PlayerManager.Instance.Players[PlayerManager.Instance.PlayerIDWithTurn])
+            return;
+
         Direction dir = (Direction)direction;
 
         MoveRequest moveRequest = new MoveRequest()
@@ -120,7 +125,13 @@ public class SideMenu : MonoBehaviour
 
     public void SendMoveRequest()
     {
+
         clientBehaviour.SendRequest(moveRequest);
+    }
+
+    public void DisconnectPlayer()
+    {
+        clientBehaviour.DisconnectPlayer();
     }
 
 }
