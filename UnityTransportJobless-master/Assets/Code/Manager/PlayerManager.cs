@@ -35,9 +35,9 @@ public class PlayerManager : Singleton<PlayerManager>
     {
         var message = (NewPlayerMessage)packet;
         Players player = new Players(message.PlayerID, message.PlayerName, message.PlayerColor);
-        Players.Add(player);
-        SpawnSprite(player);
+        SpawnSprite(ref player);
         UIManager.Instance.SpawnPlayerLabel(player);
+        Players.Add(player);
     }
 
     public void SpawnSprite(MessageHeader Info)
@@ -105,6 +105,29 @@ public class PlayerManager : Singleton<PlayerManager>
                 go.transform.GetChild(i).GetComponent<Image>().color = playerColor;
             }
             if(go.transform.GetChild(i).name.Contains("Shield"))
+            {
+                player.Shield = go.transform.GetChild(i).gameObject;
+                player.Shield.SetActive(false);
+            }
+        }
+    }
+
+    public void SpawnSprite(ref Players player)
+    {
+        Debug.Log("HI");
+        GameObject go = GameObject.Instantiate(spritePrefab);
+        player.Sprite = go;
+        go.transform.parent = UIManager.Instance.GamePanel.transform;
+
+        go.transform.position = spawnPositions[player.playerID].transform.position;
+        for (int i = 0; i < go.transform.childCount; i++)
+        {
+            if (go.transform.GetChild(i).name == "Arrow")
+            {
+                Color playerColor = new Color().FromUInt(player.clientColor);
+                go.transform.GetChild(i).GetComponent<Image>().color = playerColor;
+            }
+            if (go.transform.GetChild(i).name.Contains("Shield"))
             {
                 player.Shield = go.transform.GetChild(i).gameObject;
                 player.Shield.SetActive(false);

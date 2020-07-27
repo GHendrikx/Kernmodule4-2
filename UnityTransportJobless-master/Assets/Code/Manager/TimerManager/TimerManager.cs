@@ -44,12 +44,6 @@ namespace UnityEngine.Timers
             timers.Add(new Timer(executeAfterTime, time));
         }
 
-        public void AddTimer(ref bool toggle, float time)
-        {
-            //this.toggle.
-        }
-
-
         /// <summary>
         /// Remove Timer.
         /// </summary>
@@ -57,7 +51,6 @@ namespace UnityEngine.Timers
         {
             timers.Remove(timer);
         }
-
 
         /// <summary>
         /// Toggling the timer to stop or to continue.

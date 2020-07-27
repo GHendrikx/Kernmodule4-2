@@ -33,6 +33,7 @@ public class ClientBehaviour : MonoBehaviour
 
         ClientCallbacks[(int)MessageHeader.MessageType.NewPlayer].AddListener(PlayerManager.Instance.NewPlayer);
         ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(UIManager.Instance.SwitchToGamePanel);
+        ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(UIManager.Instance.DeleteTrash);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerTurn].AddListener(UIManager.Instance.CheckTurn);
         ClientCallbacks[(int)MessageHeader.MessageType.RoomInfo].AddListener(UIManager.Instance.ShowNewRoom);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerEnterRoom].AddListener(UIManager.Instance.EnterPlayer);
@@ -97,6 +98,7 @@ public class ClientBehaviour : MonoBehaviour
                         break;
 
                     case MessageHeader.MessageType.RequestDenied:
+                        NetworkManager.ReadMessage<RequestDeniedMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerLeft:
                         NetworkManager.ReadMessage<PlayerLeftMessage>(reader, ClientMessagesQueue);
@@ -127,6 +129,7 @@ public class ClientBehaviour : MonoBehaviour
                     case MessageHeader.MessageType.PlayerLeftDungeon:
                         break;
                     case MessageHeader.MessageType.PlayerDies:
+
                         break;
                     case MessageHeader.MessageType.EndGame:
                         break;

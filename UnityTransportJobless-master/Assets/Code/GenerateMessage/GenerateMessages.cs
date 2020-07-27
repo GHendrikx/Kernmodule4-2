@@ -7,6 +7,7 @@ public class GenerateMessages : MonoBehaviour
     public string[] typeOfMessage;
     public string path;
 
+    [ContextMenu("Generate")]
     public void Generate()
     {
         string directoryPath = Environment.CurrentDirectory + "/Assets" + path;

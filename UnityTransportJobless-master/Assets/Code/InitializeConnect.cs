@@ -20,6 +20,7 @@ public class InitializeConnect : MonoBehaviour
             name = "Unknown #" + UnityEngine.Random.Range(0,1000);
         GameObject go = new GameObject();
         ClientBehaviour c = go.AddComponent<ClientBehaviour>();
+        go.name = "ClientBehaviour";
         c.playerName = name;
     }
 
@@ -39,6 +40,7 @@ public class InitializeConnect : MonoBehaviour
 
         //clientbehaviour
         ClientBehaviour connect = go.AddComponent<ClientBehaviour>();
+        go.name = "Server + Client";
         connect.playerName = name;
     }
 }

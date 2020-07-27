@@ -4,7 +4,6 @@ using Unity.Networking.Transport;
 using Unity.Collections;
 using Assets.Code;
 using Unity.Jobs;
-using System;
 
 public class ServerBehaviour : MonoBehaviour
 {
@@ -42,8 +41,6 @@ public class ServerBehaviour : MonoBehaviour
             ServerCallbacks[i] = new MessageEvent();
         ServerCallbacks[(int)MessageHeader.MessageType.SetName].AddListener(HandleSetName);
         ServerCallbacks[(int)MessageHeader.MessageType.PlayerLeft].AddListener(DisconnectClient);
-        //ServerCallbacks[(int)MessageHeader.MessageType.MoveRequest].AddListener(); Couldn't send this because he's updating to slow
-
     }
 
     private void DisconnectClient(MessageHeader arg0)
@@ -138,8 +135,6 @@ public class ServerBehaviour : MonoBehaviour
                         case MessageHeader.MessageType.RequestDenied:
                             break;
                         case MessageHeader.MessageType.PlayerLeft:
-                            break;
-                        case MessageHeader.MessageType.StartGame:
                             break;
                         case MessageHeader.MessageType.PlayerTurn:
                             break;
@@ -256,7 +251,6 @@ public class ServerBehaviour : MonoBehaviour
     private void NewTurnMessage()
     {
         PlayerManager.Instance.PlayerIDWithTurn++;
-        Debug.Log(PlayerManager.Instance.PlayerIDWithTurn++ + " playermanager players count" + PlayerManager.Instance.Players.Count);
         if (PlayerManager.Instance.PlayerIDWithTurn == PlayerManager.Instance.Players.Count)
             PlayerManager.Instance.PlayerIDWithTurn = 0;
 
@@ -296,6 +290,7 @@ public class ServerBehaviour : MonoBehaviour
 
         GameObject go = new GameObject();
         Grid grid = GameObject.Instantiate(go).AddComponent<Grid>();
+        grid.gameObject.name = "Grid";
         grid.GenerateGrid();
         GameManager.Instance.currentGrid = grid;
 
@@ -309,8 +304,7 @@ public class ServerBehaviour : MonoBehaviour
 
         for (int i = 0; i < connections.Length; i++)
             NetworkManager.SendMessage(networkDriver, playerTurnMessage, connections[i]);
-
-
+        UIManager.Instance.DeleteTrash();
     }
 
     private void OnDestroy()

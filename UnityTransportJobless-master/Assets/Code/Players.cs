@@ -13,6 +13,7 @@ public class Players
     public bool DefendOneTurn;
     public GameObject Shield;
     public GameObject Sprite;
+
     public Players(int playerID, string clientName, uint clientColor)
     {
         this.playerID = playerID;

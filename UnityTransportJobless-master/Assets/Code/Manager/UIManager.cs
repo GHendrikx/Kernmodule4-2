@@ -66,7 +66,34 @@ public class UIManager : Singleton<UIManager>
             else
                 playButton.interactable = false;
         }
-        
+
+    }
+
+    public void DeleteTrash(MessageHeader arg0)
+    {
+        List<Players> players = PlayerManager.Instance.Players;
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].Shield == null)
+                players.RemoveAt(i);
+        }
+        if (!players.Contains(PlayerManager.Instance.CurrentPlayer))
+            players.Add(PlayerManager.Instance.CurrentPlayer);
+
+    }
+
+    public void DeleteTrash()
+    {
+        List<Players> players = PlayerManager.Instance.Players;
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].Shield == null)
+                players.RemoveAt(i);
+        }
+        if (!players.Contains(PlayerManager.Instance.CurrentPlayer))
+            players.Add(PlayerManager.Instance.CurrentPlayer);
     }
 
     public void EnterPlayer(MessageHeader playerEnter)
@@ -74,17 +101,13 @@ public class UIManager : Singleton<UIManager>
         PlayerEnterRoomMessage enterRoom = playerEnter as PlayerEnterRoomMessage;
         Players enterRoomPlayer = PlayerManager.Instance.Players[enterRoom.PlayerID];
         Debug.Log("SpriteEnterRoom " + enterRoomPlayer);
-
-        if(enterRoomPlayer.Sprite != null)
-            enterRoomPlayer.Sprite.SetActive(true);
+        enterRoomPlayer.Sprite.SetActive(true);
     }
     public void LeavePlayer(MessageHeader playerLeave)
     {
         PlayerLeaveRoomMessage leaveRoom = playerLeave as PlayerLeaveRoomMessage;
         Players player = PlayerManager.Instance.Players[leaveRoom.PlayerID];
-
-        if (player.Sprite != null)
-            player.Sprite.gameObject.SetActive(false);
+        player.Sprite.gameObject.SetActive(false);
     }
 
     public void DisableSpawnLabel(MessageHeader message)
@@ -164,7 +187,9 @@ public class UIManager : Singleton<UIManager>
     {
         PlayerTurnMessage turnMessage = playerTurnMessage as PlayerTurnMessage;
         PlayerManager.Instance.PlayerIDWithTurn = turnMessage.playerID;
-        Debug.Log(PlayerManager.Instance.CurrentPlayer.playerID);
+
+        Debug.Log(PlayerManager.Instance.CurrentPlayer.playerID + " C T " + turnMessage.playerID);
+        
         //Means its the players Turn 
         if (turnMessage.playerID == PlayerManager.Instance.CurrentPlayer.playerID)
             sideMenu.SlideMenu();
