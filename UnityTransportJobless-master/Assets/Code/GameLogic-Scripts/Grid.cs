@@ -108,7 +108,7 @@ public class Tile
         Content = (TileContent)i;
 
         if (Content == TileContent.Treasure || Content == TileContent.Both)
-            RandomTreasureAmount = Random.Range(10, 101);
+            RandomTreasureAmount = (int)Random.Range(10, 101);
         if (Content == TileContent.Monster || Content == TileContent.Both)
             MonsterHealth = 1;
 

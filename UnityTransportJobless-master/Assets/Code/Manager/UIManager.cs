@@ -181,6 +181,16 @@ public class UIManager : Singleton<UIManager>
         else
             treasureSprite.gameObject.SetActive(false);
 
+        PlayerManager.Instance.CurrentPlayer.Sprite.SetActive(true);
+
+        for (int i = 0; i < PlayerManager.Instance.Players.Count; i++)
+        {
+            if (info.OtherPlayerIDs.Contains(PlayerManager.Instance.Players[i].playerID))
+                PlayerManager.Instance.Players[i].Sprite.SetActive(true);
+            else
+                PlayerManager.Instance.Players[i].Sprite.SetActive(false);
+
+        }
     }
 
     public void CheckTurn(MessageHeader playerTurnMessage)
@@ -188,8 +198,6 @@ public class UIManager : Singleton<UIManager>
         PlayerTurnMessage turnMessage = playerTurnMessage as PlayerTurnMessage;
         PlayerManager.Instance.PlayerIDWithTurn = turnMessage.playerID;
 
-        Debug.Log(PlayerManager.Instance.CurrentPlayer.playerID + " C T " + turnMessage.playerID);
-        
         //Means its the players Turn 
         if (turnMessage.playerID == PlayerManager.Instance.CurrentPlayer.playerID)
             sideMenu.SlideMenu();

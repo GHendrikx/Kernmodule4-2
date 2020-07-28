@@ -51,7 +51,7 @@ public class ServerBehaviour : MonoBehaviour
 
     private void HandleSetName(MessageHeader message)
     {
-        Debug.Log($"Got a name: {(message as SetNameMessage).Name}");
+        //Debug.Log($"Got a name: {(message as SetNameMessage).Name}");
     }
 
     void Update()
@@ -164,6 +164,7 @@ public class ServerBehaviour : MonoBehaviour
                             PlayerManager.Instance.MovePlayer(moveRequest, i);
                             MakeEnterRoommessage(i);
                             Debug.Log(PlayerManager.Instance.Players[i].TilePosition);
+                            SendNewRoomInfo();
                             NewTurnMessage();
                             break;
 
@@ -229,8 +230,6 @@ public class ServerBehaviour : MonoBehaviour
 
     private void MakeLeaveRoomMessage(int i)
     {
-        Debug.Log("leave");
-
         for (int j = 0; j < connections.Length; j++)
         {
             Players currentPlayer = PlayerManager.Instance.Players[i];

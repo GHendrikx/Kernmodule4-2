@@ -17,7 +17,7 @@ public class InitializeConnect : MonoBehaviour
         string name = playerName.text;
 
         if(name == string.Empty)
-            name = "Unknown #" + UnityEngine.Random.Range(0,1000);
+            name = "Unknown #" + Mathf.RoundToInt(UnityEngine.Random.Range(0,1000));
         GameObject go = new GameObject();
         ClientBehaviour c = go.AddComponent<ClientBehaviour>();
         go.name = "ClientBehaviour";
@@ -31,8 +31,8 @@ public class InitializeConnect : MonoBehaviour
     {
         string name = playerName.text;
         if(name == string.Empty)
-            name = "Unknown #" + UnityEngine.Random.Range(0, float.MaxValue);
-        
+            name = "Unknown #" + Mathf.RoundToInt(UnityEngine.Random.Range(0, 1000));
+
         GameObject go = new GameObject();
         //adding serverbehaviour and set the playbutton onclick
         ServerBehaviour serverBehaviour = go.AddComponent<ServerBehaviour>();

@@ -85,13 +85,11 @@ public class PlayerManager : Singleton<PlayerManager>
             case Direction.West:
                 Players[playerIndex].TilePosition.x -= 1;
                 break;
-
         }
     }
 
     public void SpawnSprite(Players player)
     {
-        Debug.Log("HI");
         GameObject go = GameObject.Instantiate(spritePrefab);
         player.Sprite = go;
         go.transform.parent = UIManager.Instance.GamePanel.transform;
@@ -114,7 +112,6 @@ public class PlayerManager : Singleton<PlayerManager>
 
     public void SpawnSprite(ref Players player)
     {
-        Debug.Log("HI");
         GameObject go = GameObject.Instantiate(spritePrefab);
         player.Sprite = go;
         go.transform.parent = UIManager.Instance.GamePanel.transform;

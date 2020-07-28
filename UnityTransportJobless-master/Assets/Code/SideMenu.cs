@@ -127,10 +127,8 @@ public class SideMenu : MonoBehaviour
             if (PlayerManager.Instance.Players[i] == PlayerManager.Instance.CurrentPlayer)
                 continue;
             else
-            {
                 if (PlayerManager.Instance.Players[i].Sprite != null)
                     PlayerManager.Instance.Players[i].Sprite.gameObject.SetActive(false);
-            }
         }
     }
 

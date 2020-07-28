@@ -68,7 +68,7 @@ public class ClientBehaviour : MonoBehaviour
         {
             if (cmd == NetworkEvent.Type.Connect)
             {
-                Debug.Log("Connected to server");
+
             }
             else if (cmd == NetworkEvent.Type.Data)
             {

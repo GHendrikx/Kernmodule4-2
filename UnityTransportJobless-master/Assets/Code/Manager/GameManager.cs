@@ -45,10 +45,7 @@ public class GameManager : Singleton<GameManager>
         for (int j = 0; j < PlayerManager.Instance.Players.Count; j++)
             if (PlayerManager.Instance.Players[j].TilePosition == PlayerManager.Instance.Players[i].TilePosition)
             {
-                if (PlayerManager.Instance.Players[j].playerID == PlayerManager.Instance.Players[i].playerID)
-                    continue;
-                else
-                    playersID.Add(PlayerManager.Instance.Players[j].playerID);
+               playersID.Add(PlayerManager.Instance.Players[j].playerID);
             }
 
         var roomInfo = new RoomInfoMessage()
