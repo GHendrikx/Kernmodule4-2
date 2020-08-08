@@ -273,7 +273,7 @@ public class ServerBehaviour : MonoBehaviour
                         case MessageHeader.MessageType.LeaveDungeonRequest:
                             NetworkManager.ReadMessage<LeaveDungeonRequest>(reader, serverMessagesQueue);
                             PlayerManager.Instance.PlayersWhoLeft.Add(PlayerManager.Instance.Players[i]);
-
+                            break;
                             PlayerLeftDungeonMessage playerLeftDungeonMessage = new PlayerLeftDungeonMessage()
                             {
                                 playerID = i

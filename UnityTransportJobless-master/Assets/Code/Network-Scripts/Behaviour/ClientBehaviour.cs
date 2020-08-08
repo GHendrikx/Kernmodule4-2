@@ -12,7 +12,7 @@ public class ClientBehaviour : MonoBehaviour
 
     private JobHandle networkJobHandle;
 
-    private Queue<MessageHeader> ClientMessagesQueue;
+    private Queue<MessageHeader> clientMessagesQueue;
     public MessageEvent[] ClientCallbacks = new MessageEvent[(int)MessageHeader.MessageType.Count];
 
     // player name
@@ -25,7 +25,7 @@ public class ClientBehaviour : MonoBehaviour
         networkDriver = NetworkDriver.Create();
         connection = default;
 
-        ClientMessagesQueue = new Queue<MessageHeader>();
+        clientMessagesQueue = new Queue<MessageHeader>();
 
         for (int i = 0; i < ClientCallbacks.Length; i++)
         {
@@ -93,14 +93,14 @@ public class ClientBehaviour : MonoBehaviour
                 switch (messageType)
                 {
                     case MessageHeader.MessageType.None:
-                        var stayAliveMessage = NetworkManager.ReadMessage<StayAliveMessage>(reader, ClientMessagesQueue) as StayAliveMessage;
+                        var stayAliveMessage = NetworkManager.ReadMessage<StayAliveMessage>(reader, clientMessagesQueue) as StayAliveMessage;
                         TimerManager.Instance.AddTimer(StayAlive, 10);
                         break;
                     case MessageHeader.MessageType.NewPlayer:
-                        NewPlayerMessage newPlayerMessage = (NewPlayerMessage)NetworkManager.ReadMessage<NewPlayerMessage>(reader, ClientMessagesQueue);
+                        NewPlayerMessage newPlayerMessage = (NewPlayerMessage)NetworkManager.ReadMessage<NewPlayerMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.Welcome:
-                        var welcomeMessage = (WelcomeMessage)NetworkManager.ReadMessage<WelcomeMessage>(reader, ClientMessagesQueue) as WelcomeMessage;
+                        var welcomeMessage = (WelcomeMessage)NetworkManager.ReadMessage<WelcomeMessage>(reader, clientMessagesQueue) as WelcomeMessage;
 
                         var setNameMessage = new SetNameMessage
                         {
@@ -115,48 +115,48 @@ public class ClientBehaviour : MonoBehaviour
                         break;
 
                     case MessageHeader.MessageType.RequestDenied:
-                        NetworkManager.ReadMessage<RequestDeniedMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<RequestDeniedMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerLeft:
-                        NetworkManager.ReadMessage<PlayerLeftMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<PlayerLeftMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.StartGame:
                         PlayerManager.Instance.SortingPlayerList();
-                        NetworkManager.ReadMessage<StartGameMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<StartGameMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerTurn:
-                        NetworkManager.ReadMessage<PlayerTurnMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<PlayerTurnMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.RoomInfo:
-                        NetworkManager.ReadMessage<RoomInfoMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<RoomInfoMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerEnterRoom:
-                        NetworkManager.ReadMessage<PlayerLeaveRoomMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<PlayerLeaveRoomMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerLeaveRoom:
-                        NetworkManager.ReadMessage<PlayerLeaveRoomMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<PlayerLeaveRoomMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.ObtainTreasure:
-                        NetworkManager.ReadMessage<ObtainTreasureMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<ObtainTreasureMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.HitMonster:
-                        NetworkManager.ReadMessage<HitMonsterMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<HitMonsterMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.HitByMonster:
-                        NetworkManager.ReadMessage<HitByMonsterMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<HitByMonsterMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerDefends:
-                        NetworkManager.ReadMessage<PlayerDefendsMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<PlayerDefendsMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerLeftDungeon:
-                        NetworkManager.ReadMessage<PlayerLeftDungeonMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<PlayerLeftDungeonMessage>(reader, clientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerDies:
-                        NetworkManager.ReadMessage<PlayerDiesMessage>(reader, ClientMessagesQueue);
+                        NetworkManager.ReadMessage<PlayerDiesMessage>(reader, clientMessagesQueue);
                         connection.Disconnect(networkDriver);
                         break;
                     case MessageHeader.MessageType.EndGame:
-                        NetworkManager.ReadMessage<EndGameMessage>(reader,ClientMessagesQueue);
+                        NetworkManager.ReadMessage<EndGameMessage>(reader,clientMessagesQueue);
                         break;
                 }
             }
@@ -175,9 +175,9 @@ public class ClientBehaviour : MonoBehaviour
 
     private void ProcessMessagesQueue()
     {
-        while (ClientMessagesQueue.Count > 0)
+        while (clientMessagesQueue.Count > 0)
         {
-            var message = ClientMessagesQueue.Dequeue();
+            var message = clientMessagesQueue.Dequeue();
             ClientCallbacks[(int)message.Type].Invoke(message);
         }
     }

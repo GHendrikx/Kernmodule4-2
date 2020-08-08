@@ -7,7 +7,6 @@ public static class DatabaseManager
 {
     public static string response;
     public readonly static string BaseUrl = "https://studenthome.hku.nl/~geoffrey.hendrikx/kernmodule4/";
-    //public readonly static string BaseUrl = "http://localhost/kernmodule4/";
     public static int ServerID = 1;
     public static string ServerPassword = "vertelikniet";
     public static string sessionID;
