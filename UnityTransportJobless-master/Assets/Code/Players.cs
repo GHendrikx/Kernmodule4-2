@@ -7,12 +7,14 @@ public class Players
     public int playerID;
     public string clientName;
     public uint clientColor;
+    public int Health;
     public Vector2 TilePosition;
     public uint treasureAmount;
     public bool Turn;
     public bool DefendOneTurn;
     public GameObject Shield;
     public GameObject Sprite;
+    public GameObject Arrow;
 
     public Players(int playerID, string clientName, uint clientColor)
     {

@@ -17,6 +17,7 @@ public class ClientBehaviour : MonoBehaviour
 
     // player name
     public string playerName;
+    public string IPAdress;
 
     // Use this for initialization
     private void Start()
@@ -32,19 +33,35 @@ public class ClientBehaviour : MonoBehaviour
         }
 
         ClientCallbacks[(int)MessageHeader.MessageType.NewPlayer].AddListener(PlayerManager.Instance.NewPlayer);
+        ClientCallbacks[(int)MessageHeader.MessageType.NewPlayer].AddListener(UIManager.Instance.SortingPlayerLabel);
+        ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(PlayerManager.Instance.SetBeginHealth);
         ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(UIManager.Instance.SwitchToGamePanel);
-        ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(UIManager.Instance.DeleteTrash);
+        ClientCallbacks[(int)MessageHeader.MessageType.StartGame].AddListener(UIManager.Instance.DeletePlayerLabels);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerTurn].AddListener(UIManager.Instance.CheckTurn);
+        ClientCallbacks[(int)MessageHeader.MessageType.RequestDenied].AddListener(UIManager.Instance.ShowErrorCode);
         ClientCallbacks[(int)MessageHeader.MessageType.RoomInfo].AddListener(UIManager.Instance.ShowNewRoom);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerEnterRoom].AddListener(UIManager.Instance.EnterPlayer);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeaveRoom].AddListener(UIManager.Instance.LeavePlayer);
         ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeft].AddListener(UIManager.Instance.DisableSpawnLabel);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerLeft].AddListener(UIManager.Instance.RemovePlayer);
+        ClientCallbacks[(int)MessageHeader.MessageType.HitMonster].AddListener(UIManager.Instance.ToggleAttackAnimation);
+        ClientCallbacks[(int)MessageHeader.MessageType.HitByMonster].AddListener(PlayerManager.Instance.HitByMonster);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerDies].AddListener(PlayerManager.Instance.PlayerDies);
+        ClientCallbacks[(int)MessageHeader.MessageType.ObtainTreasure].AddListener(UIManager.Instance.ObtainTreasure);
+        ClientCallbacks[(int)MessageHeader.MessageType.PlayerDefends].AddListener(UIManager.Instance.PlayerDefend);
+        ClientCallbacks[(int)MessageHeader.MessageType.EndGame].AddListener(GameManager.Instance.InsertScore);
 
-
-
-        var endpoint = NetworkEndPoint.LoopbackIpv4;
-        endpoint.Port = 9000;
-        connection = networkDriver.Connect(endpoint);
+        if (GameManager.Instance.LOCAL)
+        {
+            var endpoint = NetworkEndPoint.LoopbackIpv4;
+            endpoint.Port = 9000;
+            connection = networkDriver.Connect(endpoint);
+        }
+        else
+        {
+            var endPoint = NetworkEndPoint.Parse(IPAdress,9000);
+            connection = networkDriver.Connect(endPoint);
+        }
         TimerManager.Instance.AddTimer(StayAlive, 10);
     }
 
@@ -55,7 +72,7 @@ public class ClientBehaviour : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         networkJobHandle.Complete();
 
@@ -104,6 +121,7 @@ public class ClientBehaviour : MonoBehaviour
                         NetworkManager.ReadMessage<PlayerLeftMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.StartGame:
+                        PlayerManager.Instance.SortingPlayerList();
                         NetworkManager.ReadMessage<StartGameMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerTurn:
@@ -119,27 +137,33 @@ public class ClientBehaviour : MonoBehaviour
                         NetworkManager.ReadMessage<PlayerLeaveRoomMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.ObtainTreasure:
+                        NetworkManager.ReadMessage<ObtainTreasureMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.HitMonster:
+                        NetworkManager.ReadMessage<HitMonsterMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.HitByMonster:
+                        NetworkManager.ReadMessage<HitByMonsterMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerDefends:
+                        NetworkManager.ReadMessage<PlayerDefendsMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerLeftDungeon:
+                        NetworkManager.ReadMessage<PlayerLeftDungeonMessage>(reader, ClientMessagesQueue);
                         break;
                     case MessageHeader.MessageType.PlayerDies:
-
+                        NetworkManager.ReadMessage<PlayerDiesMessage>(reader, ClientMessagesQueue);
+                        connection.Disconnect(networkDriver);
                         break;
                     case MessageHeader.MessageType.EndGame:
-                        break;
-                    case MessageHeader.MessageType.Count:
+                        NetworkManager.ReadMessage<EndGameMessage>(reader,ClientMessagesQueue);
                         break;
                 }
             }
             else if (cmd == NetworkEvent.Type.Disconnect)
             {
                 Debug.Log("Disconnected from server");
+                UIManager.Instance.DisconnectedPanel();
                 connection = default;
             }
         }
@@ -160,16 +184,14 @@ public class ClientBehaviour : MonoBehaviour
 
     public void DisconnectPlayer()
     {
-        var playerLeftMessage = new PlayerLeftMessage();
-        playerLeftMessage.playerLeftID = (uint)PlayerManager.Instance.CurrentPlayer.playerID;
-        NetworkManager.SendMessage(networkDriver, playerLeftMessage, connection);
-        connection.Disconnect(networkDriver);
+        networkJobHandle.Complete();
+        PlayerManager.Instance.Players = null;
+        networkDriver.Disconnect(connection);
     }
 
     /// <summary>
     /// Send Requests
     /// </summary>
-    /// <param name="MessageRequest"></param>
     public void SendRequest(MessageHeader MessageRequest)
     {
         networkJobHandle.Complete();

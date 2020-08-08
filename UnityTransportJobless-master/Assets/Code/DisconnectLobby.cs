@@ -8,9 +8,7 @@ public class DisconnectLobby : MonoBehaviour
     {
         get
         {
-            if (clientBehaviour == null)
-                clientBehaviour = FindObjectOfType<ClientBehaviour>();
-            return clientBehaviour;
+            return FindObjectOfType<ClientBehaviour>(); ;
         }
         set
         {

@@ -16,8 +16,8 @@ public class Grid : MonoBehaviour
         tilesArray[0, 0].Content = TileContent.None;
         tilesArray[0, 0].SetBeginOrExitTile(TileContent.Begin);
 
-        tilesArray[9, 9].Content = TileContent.None;
-        tilesArray[9, 9].SetBeginOrExitTile(TileContent.Exit);
+        tilesArray[(int)gridSize.x - 1, (int)gridSize.y - 1].Content = TileContent.None;
+        tilesArray[(int)gridSize.x - 1, (int)gridSize.y - 1].SetBeginOrExitTile(TileContent.Exit);
     }
 
     public byte CheckNeighbors(int i)
@@ -75,7 +75,7 @@ public class Tile
     public int X;
     public int Y;
     public TileContent Content;
-    public int RandomTreasureAmount;
+    public int TreasureAmount;
     public int MonsterHealth;
     public bool ExitTile;
     public bool BeginTile;
@@ -104,11 +104,11 @@ public class Tile
 
     public void RandomTileContent()
     {
-        int i = Random.Range(2, 4 + 1);
+        int i = Random.Range(2, 5 + 1);
         Content = (TileContent)i;
 
         if (Content == TileContent.Treasure || Content == TileContent.Both)
-            RandomTreasureAmount = (int)Random.Range(10, 101);
+            TreasureAmount = (int)Random.Range(10, 101);
         if (Content == TileContent.Monster || Content == TileContent.Both)
             MonsterHealth = 1;
 

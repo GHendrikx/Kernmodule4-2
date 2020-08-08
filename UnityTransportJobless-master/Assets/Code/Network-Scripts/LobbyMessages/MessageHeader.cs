@@ -35,7 +35,7 @@ namespace Assets.Code
             MoveRequest,
             AttackRequest,
             DefendRequest,
-            ClaimTreasureRequest,
+            ObtainTreasureRequest,
             LeaveDungeonRequest,
             Count
         }

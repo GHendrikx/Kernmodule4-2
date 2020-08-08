@@ -4,7 +4,7 @@ namespace Assets.Code
 {
 	public class ClaimTreasureRequestMessage : MessageHeader
 	{
-		public override MessageType Type => MessageType.ClaimTreasureRequest;
+		public override MessageType Type => MessageType.ObtainTreasureRequest;
 		public override void SerializeObject(ref DataStreamWriter writer)
 		{
 			base.SerializeObject(ref writer);

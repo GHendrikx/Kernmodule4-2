@@ -2,6 +2,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Timers;
+using UnityEngine.UI;
 
 public class SideMenu : MonoBehaviour
 {
@@ -12,11 +13,14 @@ public class SideMenu : MonoBehaviour
     [SerializeField]
     private Animator[] doorsAnimators;
     private MoveRequest moveRequest;
-
+    [SerializeField]
+    private Button leaveButton;
     // Start is called before the first frame update
     private void Start()
     {
         clientBehaviour = FindObjectOfType<ClientBehaviour>();
+        leaveButton.onClick.AddListener(() => SendLeaveRequest());
+        leaveButton.gameObject.SetActive(false);
     }
 
     public void Update()
@@ -55,24 +59,20 @@ public class SideMenu : MonoBehaviour
     {
         AttackRequestMessage attackRequest = new AttackRequestMessage();
         clientBehaviour.SendRequest(attackRequest);
-        Players currentPlayer = PlayerManager.Instance.CurrentPlayer;
-        Tile currentTile = GameManager.Instance.currentGrid.tilesArray[(int)currentPlayer.TilePosition.x, (int)currentPlayer.TilePosition.y];
-        currentTile.MonsterHealth = 0;
-
-        if (currentTile.Content == TileContent.Both)
-            currentTile.Content = TileContent.Treasure;
-        else
-            currentTile.Content = TileContent.None;
-
-        UIManager.Instance.monsterSprite.SetActive(false);
     }
 
     public void SendClaimTreasureRequest()
     {
-        ObtainTreasureMessage obtainTreasureMessage = new ObtainTreasureMessage();
-        clientBehaviour.SendRequest(obtainTreasureMessage);
+        ClaimTreasureRequestMessage claimTreasureRequest = new ClaimTreasureRequestMessage();
+        clientBehaviour.SendRequest(claimTreasureRequest);
     }
 
+
+    public void SendLeaveRequest()
+    {
+        LeaveDungeonRequest leaveDungeon = new LeaveDungeonRequest();
+        clientBehaviour.SendRequest(leaveDungeon);
+    }
 
     /// <summary>
     /// 0 North
@@ -85,9 +85,14 @@ public class SideMenu : MonoBehaviour
     {
         if (!SlideOut)
         {
-            Debug.Log("NOT YOUR TURN");
             return;
         }
+
+        Vector2 currentPosition = PlayerManager.Instance.CurrentPlayer.TilePosition;
+        Debug.Log(PlayerManager.Instance.CurrentPlayer);
+        Debug.Log(currentPosition);
+        Debug.Log(GameManager.Instance.CurrentGrid);
+
 
         Direction dir = (Direction)direction;
 
@@ -99,23 +104,25 @@ public class SideMenu : MonoBehaviour
         this.moveRequest = moveRequest;
         TimerManager.Instance.AddTimer(DeactivateSprite, 1);
 
-
-        switch (dir)
+        if (PlayerManager.Instance.CurrentPlayer.playerID == PlayerManager.Instance.PlayerIDWithTurn)
         {
-            case Direction.North:
-                doorsAnimators[0].SetTrigger("Open");
-                break;
-            case Direction.East:
-                doorsAnimators[1].SetTrigger("Open");
+            switch (dir)
+            {
+                case Direction.North:
+                    doorsAnimators[0].SetTrigger("Open");
+                    break;
+                case Direction.East:
+                    doorsAnimators[1].SetTrigger("Open");
 
-                break;
-            case Direction.South:
-                doorsAnimators[2].SetTrigger("Open");
-                break;
-            case Direction.West:
-                doorsAnimators[3].SetTrigger("Open");
-                break;
+                    break;
+                case Direction.South:
+                    doorsAnimators[2].SetTrigger("Open");
+                    break;
+                case Direction.West:
+                    doorsAnimators[3].SetTrigger("Open");
+                    break;
 
+            }
         }
         TimerManager.Instance.AddTimer(SendMoveRequest, 1);
     }
@@ -128,7 +135,7 @@ public class SideMenu : MonoBehaviour
                 continue;
             else
                 if (PlayerManager.Instance.Players[i].Sprite != null)
-                    PlayerManager.Instance.Players[i].Sprite.gameObject.SetActive(false);
+                PlayerManager.Instance.Players[i].Sprite.gameObject.SetActive(false);
         }
     }
 

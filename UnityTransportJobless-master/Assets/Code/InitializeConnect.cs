@@ -8,6 +8,8 @@ public class InitializeConnect : MonoBehaviour
 {
     //PlayerName
     public InputField playerName;
+    //Ip Adress you want to connect to
+    public InputField ipAdress;
 
     /// <summary>
     /// Spawning the Clientbehaviour for
@@ -17,11 +19,15 @@ public class InitializeConnect : MonoBehaviour
         string name = playerName.text;
 
         if(name == string.Empty)
-            name = "Unknown #" + Mathf.RoundToInt(UnityEngine.Random.Range(0,1000));
+            name = "Vincent #" + Mathf.RoundToInt(UnityEngine.Random.Range(0,1000));
         GameObject go = new GameObject();
-        ClientBehaviour c = go.AddComponent<ClientBehaviour>();
+        ClientBehaviour connect = go.AddComponent<ClientBehaviour>();
+
+        if (ipAdress.text != "")
+            connect.IPAdress = ipAdress.text;
+
         go.name = "ClientBehaviour";
-        c.playerName = name;
+        connect.playerName = name;
     }
 
     /// <summary>
@@ -31,15 +37,20 @@ public class InitializeConnect : MonoBehaviour
     {
         string name = playerName.text;
         if(name == string.Empty)
-            name = "Unknown #" + Mathf.RoundToInt(UnityEngine.Random.Range(0, 1000));
+            name = "Vincent #" + Mathf.RoundToInt(UnityEngine.Random.Range(0, 1000));
 
         GameObject go = new GameObject();
         //adding serverbehaviour and set the playbutton onclick
         ServerBehaviour serverBehaviour = go.AddComponent<ServerBehaviour>();
         UIManager.Instance.PlayButton.onClick.AddListener(serverBehaviour.StartGame);
-
+        
         //clientbehaviour
         ClientBehaviour connect = go.AddComponent<ClientBehaviour>();
+        if (ipAdress.text == "")
+        {
+            serverBehaviour.IPAdress = ipAdress.text;
+            connect.IPAdress = ipAdress.text;
+        }
         go.name = "Server + Client";
         connect.playerName = name;
     }
