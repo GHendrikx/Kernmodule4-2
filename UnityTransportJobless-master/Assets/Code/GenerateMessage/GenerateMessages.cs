@@ -2,6 +2,9 @@
 using System.IO;
 using System;
 
+/// <summary>
+/// Helper class to generate Messages
+/// </summary>
 public class GenerateMessages : MonoBehaviour
 {
     public string[] typeOfMessage;

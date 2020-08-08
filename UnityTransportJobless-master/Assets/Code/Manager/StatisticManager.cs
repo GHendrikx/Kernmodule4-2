@@ -18,11 +18,11 @@ public class StatisticManager : Singleton<StatisticManager>
     }
     public IEnumerator ShowStatistics()
     {
+        Debug.Log("Show Statics");
         yield return StartCoroutine(DatabaseManager.GetHttp("Statistics.php"));
         statsPanel.SetActive(true);
         DataBaseStatistic highscores = new DataBaseStatistic();
         highscores = JsonUtility.FromJson<DataBaseStatistic>(DatabaseManager.response);
-        Debug.Log("HI");
         nameText.text = "";
         scoreText.text = "";
 

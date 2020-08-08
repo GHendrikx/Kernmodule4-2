@@ -52,8 +52,10 @@ public class GameManager : Singleton<GameManager>
     public void InsertScore(MessageHeader message)
     {
         EndGameMessage endGame = message as EndGameMessage;
-        for (int i = 0; i == endGame.numberOfScores; i++)
-            StartCoroutine(DatabaseManager.GetHttp($"InsertScore.php?User_ID={ PlayerManager.Instance.PlayersWhoLeft[endGame.playerID[i]].clientName }&Score={ endGame.highScorePairs[i] }&session_id={ DatabaseManager.sessionID }"));
+        Debug.Log("EndGame");
+        for (int i = 0; i < endGame.numberOfScores; i++)
+            StartCoroutine(DatabaseManager.GetHttp($"InsertScore.php?User_ID={ PlayerManager.Instance.PlayersWhoLeft[endGame.playerID[i]].playerID} &Score={ endGame.highScorePairs[i] }&session_id={ DatabaseManager.sessionID }"));
+        Debug.Log("For end");
         StatisticManager.Instance.UpdateStatistics();
     }
 
